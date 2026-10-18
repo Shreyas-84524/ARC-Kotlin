@@ -56,6 +56,9 @@ fun ArcNavHost(
                     moneyContent = {
                         com.arc.arc.features.money.MoneyRoute(container = container)
                     },
+                    vaultContent = {
+                        com.arc.arc.features.vault.VaultRoute(container = container)
+                    },
                     dashboardContent = { onNavigateToTab ->
                         com.arc.arc.features.dashboard.DashboardRoute(
                             container = container,

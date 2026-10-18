@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -40,7 +41,8 @@ enum class ArcNavTab(
     DASHBOARD("Dashboard", Icons.Default.Dashboard, "dashboard"),
     TASKS("Tasks", Icons.Default.CheckCircle, "tasks"),
     HABITS("Habits", Icons.Default.FlashOn, "habits"),
-    MONEY("Money", Icons.Default.AttachMoney, "money");
+    MONEY("Money", Icons.Default.AttachMoney, "money"),
+    VAULT("Vault", Icons.Default.Lock, "vault");
 }
 
 @Composable

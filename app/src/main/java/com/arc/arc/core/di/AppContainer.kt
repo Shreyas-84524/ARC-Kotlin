@@ -12,9 +12,19 @@ import com.arc.arc.core.datastore.arcDataStore
 import com.arc.arc.features.habits.data.IHabitRepository
 import com.arc.arc.features.habits.data.OfflineFirstHabitRepository
 import com.arc.arc.features.money.data.ITransactionRepository
+import com.arc.arc.core.database.RoomSecretNoteDataSource
+import com.arc.arc.core.datastore.IVaultPreferencesDataStore
+import com.arc.arc.core.datastore.VaultPreferencesDataStore
+import com.arc.arc.core.security.BiometricAuthManager
+import com.arc.arc.core.security.IBiometricAuthManager
+import com.arc.arc.core.security.VaultAuthCoordinator
+import com.arc.arc.core.security.VaultLifecycleManager
+import com.arc.arc.core.security.VaultPinManager
 import com.arc.arc.features.money.data.OfflineFirstTransactionRepository
 import com.arc.arc.features.tasks.data.ITaskRepository
 import com.arc.arc.features.tasks.data.OfflineFirstTaskRepository
+import com.arc.arc.features.vault.data.ISecretNoteRepository
+import com.arc.arc.features.vault.data.OfflineFirstSecretNoteRepository
 
 /**
  * Dependency injection container for ARC.
@@ -30,6 +40,13 @@ interface AppContainer {
     val transactionRepository: ITransactionRepository
     val preferencesDataStore: AppPreferencesDataStore
     val authRepository: IAuthRepository
+    val secretNoteDataSource: RoomSecretNoteDataSource
+    val secretNoteRepository: ISecretNoteRepository
+    val vaultPreferencesDataStore: IVaultPreferencesDataStore
+    val vaultPinManager: VaultPinManager
+    val vaultAuthCoordinator: VaultAuthCoordinator
+    val biometricAuthManager: IBiometricAuthManager
+    val vaultLifecycleManager: VaultLifecycleManager
 }
 
 class DefaultAppContainer(private val context: Context) : AppContainer {
@@ -69,5 +86,33 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     override val authRepository: IAuthRepository by lazy {
         // DevFakeAuthRepository provides isolated development auth
         DevFakeAuthRepository()
+    }
+
+    override val secretNoteDataSource: RoomSecretNoteDataSource by lazy {
+        RoomSecretNoteDataSource(database)
+    }
+
+    override val secretNoteRepository: ISecretNoteRepository by lazy {
+        OfflineFirstSecretNoteRepository(secretNoteDataSource)
+    }
+
+    override val vaultPreferencesDataStore: IVaultPreferencesDataStore by lazy {
+        VaultPreferencesDataStore(context.arcDataStore)
+    }
+
+    override val vaultPinManager: VaultPinManager by lazy {
+        VaultPinManager(vaultPreferencesDataStore)
+    }
+
+    override val vaultAuthCoordinator: VaultAuthCoordinator by lazy {
+        VaultAuthCoordinator(vaultPinManager, vaultPreferencesDataStore)
+    }
+
+    override val biometricAuthManager: IBiometricAuthManager by lazy {
+        BiometricAuthManager()
+    }
+
+    override val vaultLifecycleManager: VaultLifecycleManager by lazy {
+        VaultLifecycleManager(vaultAuthCoordinator)
     }
 }
