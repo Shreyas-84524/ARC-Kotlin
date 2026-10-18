@@ -1,6 +1,7 @@
 package com.arc.arc.features.auth
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.arc.arc.core.auth.DevFakeAuthRepository
 import com.arc.arc.core.auth.IAuthRepository
@@ -71,6 +72,15 @@ class LoginViewModel(
                     _uiState.update { it.copy(isLoading = false, errorMessage = error.message ?: "Preset login failed") }
                 }
             )
+        }
+    }
+
+    companion object {
+        fun factory(authRepository: IAuthRepository): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return LoginViewModel(authRepository) as T
+            }
         }
     }
 }

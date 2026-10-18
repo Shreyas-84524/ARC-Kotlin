@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.arc.arc.core.auth.AuthState
 import com.arc.arc.core.di.AppContainer
 import com.arc.arc.core.designsystem.components.ArcLoadingState
@@ -33,7 +34,9 @@ fun ArcNavHost(
             }
 
             is AuthState.Unauthenticated, is AuthState.Error -> {
-                val loginViewModel = LoginViewModel(container.authRepository)
+                val loginViewModel: LoginViewModel = viewModel(
+                    factory = LoginViewModel.factory(container.authRepository)
+                )
                 LoginScreen(
                     viewModel = loginViewModel,
                     onLoginSuccess = {

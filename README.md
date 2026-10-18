@@ -1,37 +1,72 @@
 # ARC Kotlin
 
-Native Android successor to the existing ARC Flutter productivity application. This repository currently contains the verified Phase 0 foundation only; application features have deliberately not been ported yet.
+Native Android successor to the ARC Flutter productivity application. This repository contains the native Kotlin architecture, Jetpack Compose design system, Room persistence foundation, development authentication, authenticated navigation shell, and the complete offline-first Tasks vertical slice established in **Phase 1**.
 
 ## Objectives
 
-- Preserve the production identity and user-data contracts of `C:\dev\ARC`.
-- Replace Flutter/Dart incrementally with Kotlin, Jetpack Compose, and Android-native integrations.
-- Improve measurable startup, package size, memory use, reliability, and maintainability without claiming gains before comparable release benchmarks exist.
+- Preserve the production identity and user-data contracts of the original ARC application (`C:\dev\ARC`).
+- Replace Flutter/Dart incrementally with Kotlin, Jetpack Compose, Room SQLite persistence, and Android-native integrations.
+- Guarantee offline-first reliability, strict user data isolation, and smooth Compose performance.
 
-## Stack
+## Stack & Toolchain
 
-Kotlin with AGP built-in Kotlin support, Jetpack Compose + Material 3, Gradle Kotlin DSL, Gradle version catalog, AndroidX, JDK 17 bytecode, compile SDK 37, target SDK 36, and minimum SDK 23.
+- **Build System:** Android Gradle Plugin 9.4.1 (with AGP built-in Kotlin support) & Gradle 9.8.1
+- **Language & Runtime:** Kotlin 2.4.21, Java 17 bytecode
+- **UI Framework:** Jetpack Compose (BOM 2026.09.00), Material 3
+- **Local Persistence:** AndroidX Room 2.6.1 (SQLite) with schema export, DataStore Preferences 1.1.2
+- **Concurrency & Architecture:** Kotlin Coroutines 1.10.1, StateFlow, Unidirectional Data Flow (UDF), ViewModel
+- **SDK Targets:** Compile SDK 37, Target SDK 36, Min SDK 23
 
-The production namespace remains `com.arc.arc`. Debug builds use `com.arc.arc.native.dev`, preventing Phase 0 installs from replacing the Flutter app or touching its sandbox.
+The production namespace remains `com.arc.arc`. Debug builds use `com.arc.arc.native.dev`, preventing development installs from colliding with the Flutter app or touching production data.
 
-## Build on Windows
+## Build & Test Instructions
 
-1. Install Android Studio and SDK Platform 37 / Build Tools 36.0.0.
-2. Use Android Studio's bundled runtime or a compatible JDK (minimum 17).
-3. Create untracked `local.properties` with `sdk.dir=C\:\\Users\\<you>\\AppData\\Local\\Android\\Sdk`, or let Android Studio generate it.
-4. Run `./gradlew.bat :app:assembleDebug`.
-5. Run `./gradlew.bat :app:testDebugUnitTest :app:lintDebug`.
+1. Ensure JDK 17 (or Android Studio bundled runtime) and Android SDK 37 are configured in `local.properties`.
+2. Build debug APK:
+   ```shell
+   .\gradlew.bat :app:assembleDebug
+   ```
+3. Run automated unit tests:
+   ```shell
+   .\gradlew.bat :app:testDebugUnitTest
+   ```
+4. Run Android Lint:
+   ```shell
+   .\gradlew.bat :app:lintDebug
+   ```
 
-No Firebase configuration is required for the Phase 0 placeholder.
+## Repository Structure
 
-## Structure
+```
+app/src/main/java/com/arc/arc/
+├── core/
+│   ├── auth/              # Auth interfaces, session state, DevFakeAuthRepository
+│   ├── database/          # Room database (v1), TaskDao, TaskEntity
+│   ├── datastore/         # DataStore preferences for theme and settings
+│   ├── designsystem/      # Compose design system tokens and reusable components
+│   ├── di/                # AppContainer dependency injection
+│   ├── migration/         # Hive to Room migration contract
+│   └── model/             # Domain models (Task, Habit, Transaction, UserProfile)
+├── features/
+│   ├── auth/              # Login screen and LoginViewModel
+│   ├── dashboard/         # Dashboard placeholder (Phase 2 target)
+│   ├── habits/            # Habits placeholder (Phase 2 target)
+│   ├── money/             # Money placeholder (Phase 3 target)
+│   ├── navigation/        # ArcNavHost and 4-tab MainShellScreen
+│   └── tasks/             # Offline-first Tasks module (UI, ViewModel, Repository)
+├── ArcApplication.kt      # Application subclass
+└── MainActivity.kt        # Entry point ComponentActivity
+```
 
-- `app/`: minimal Compose application.
-- `gradle/libs.versions.toml`: centralized build and dependency versions.
-- `docs/phase-0/`: Flutter audit, migration design, security analysis, and handoff.
+## Documentation
 
-Feature modules will be introduced only when Phase 1 boundaries are demonstrated. The intended layers are presentation, domain, data, and core services with feature-oriented packaging.
-
-## Status and documentation
-
-Phase 0 is documented in [PHASE_0_REPORT.md](docs/phase-0/PHASE_0_REPORT.md). Start with [ANTIGRAVITY_HANDOFF.md](docs/phase-0/ANTIGRAVITY_HANDOFF.md) for Phase 1 and consult [USER_ACTIONS_REQUIRED.md](docs/phase-0/USER_ACTIONS_REQUIRED.md) before enabling Firebase, signing, SMS access, or production identity installation.
+- **Phase 0 Baseline:** [docs/phase-0/PHASE_0_REPORT.md](docs/phase-0/PHASE_0_REPORT.md)
+- **Phase 1 Documentation Suite:**
+  - Executive Report: [docs/phase-1/PHASE_1_REPORT.md](docs/phase-1/PHASE_1_REPORT.md)
+  - Architecture: [docs/phase-1/ARCHITECTURE_IMPLEMENTATION.md](docs/phase-1/ARCHITECTURE_IMPLEMENTATION.md)
+  - Data Contracts: [docs/phase-1/DATA_CONTRACT_RESULTS.md](docs/phase-1/DATA_CONTRACT_RESULTS.md)
+  - Tasks Implementation: [docs/phase-1/TASKS_IMPLEMENTATION.md](docs/phase-1/TASKS_IMPLEMENTATION.md)
+  - Test Results: [docs/phase-1/TEST_RESULTS.md](docs/phase-1/TEST_RESULTS.md)
+  - Performance Results: [docs/phase-1/PERFORMANCE_RESULTS.md](docs/phase-1/PERFORMANCE_RESULTS.md)
+  - Remaining Integrations: [docs/phase-1/REMAINING_INTEGRATIONS.md](docs/phase-1/REMAINING_INTEGRATIONS.md)
+  - Phase 2 Handoff: [docs/phase-1/PHASE_2_HANDOFF.md](docs/phase-1/PHASE_2_HANDOFF.md)

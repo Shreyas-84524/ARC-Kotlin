@@ -1,13 +1,17 @@
-# ARC Kotlin agent instructions
+# ARC Kotlin Agent Instructions
 
-1. Read every file under `docs/phase-0/` before feature work, beginning with `ANTIGRAVITY_HANDOFF.md`.
-2. Treat `C:\dev\ARC` as read-only. Never edit, format, generate into, clean, reset, or restructure the Flutter repository without explicit user permission.
-3. Implement new Android work in Kotlin and Jetpack Compose and follow the architecture and sequence in `KOTLIN_ARCHITECTURE.md` and `MIGRATION_ROADMAP.md`.
-4. Preserve application identity, Firebase authentication identities, Firestore paths, local record identifiers, timestamp semantics, and user data. Do not run a real-data migration without an approved, tested rollback plan.
-5. Never hardcode or commit credentials, service-account files, signing keys, `.env` values, private certificates, or unreviewed `google-services.json` files.
-6. Prefer stable, mutually compatible dependencies in the version catalog. Record intentional version or architecture changes.
-7. Follow Kotlin style, keep composables small and stateless where practical, expose immutable UI state, and use coroutines/Flow for asynchronous boundaries.
-8. Run focused tests plus `:app:testDebugUnitTest`, `:app:lintDebug`, and the relevant assemble task after modifications.
-9. Keep Phase 0 and later migration documentation current. Do not introduce undocumented breaking changes.
-10. Use conventional commits. Inspect staged changes and scan for secrets before committing.
-11. Never force-push, rewrite history, discard user changes, or perform destructive Git operations without explicit authorization.
+1. **Review Phase Handoffs:** Before starting work, review `docs/phase-0/` and all files under `docs/phase-1/`, particularly `docs/phase-1/PHASE_2_HANDOFF.md` and `docs/phase-1/ARCHITECTURE_IMPLEMENTATION.md`.
+2. **Read-Only Legacy Reference:** Treat `C:\dev\ARC` as strictly read-only. Never edit, format, generate into, clean, reset, or restructure the Flutter repository without explicit user permission.
+3. **Architecture & Persistence Standards:**
+   - Follow the established native architecture in `com.arc.arc`.
+   - Domain models reside in `core/model/`.
+   - Room database entities and DAOs reside in `core/database/` (authored in Java to interop with AGP built-in Kotlin annotation processing) with Kotlin extension mappers in `core/model/`.
+   - Reusable UI elements must use `ArcTheme` tokens in `core/designsystem/`.
+   - ViewModels must implement a companion `ViewModelProvider.Factory` and be retrieved via `viewModel(factory = ...)`.
+4. **Data Contract Integrity:** Preserve verified record schemas, timestamp formatting (ISO-8601 UTC), enum mappings, composite key patterns (`${habitId}_${dateStr}` for HabitEntry), and user scoping (`userId`).
+5. **Security Safeguards:**
+   - Never commit credentials, keystores, or production `google-services.json` files.
+   - Development auth must maintain `isDevFake = true` and keep development records strictly isolated from production Firebase.
+6. **Toolchain Discipline:** Do not re-introduce legacy plugins (such as `id("kotlin-kapt")` or external `kotlin-android`) incompatible with AGP 9.4.1 built-in Kotlin support.
+7. **Quality Gates:** Every phase or major feature must verify clean compilation, 100% test pass rate (`:app:testDebugUnitTest`), zero Android Lint errors (`:app:lintDebug`), and successful packaging (`:app:assembleDebug`).
+8. **Git Best Practices:** Use conventional commits. Never force-push, rewrite history, or discard existing work.

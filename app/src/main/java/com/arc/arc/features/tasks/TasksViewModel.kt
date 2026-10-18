@@ -1,6 +1,7 @@
 package com.arc.arc.features.tasks
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.arc.arc.core.auth.IAuthRepository
 import com.arc.arc.core.datastore.AppPreferencesDataStore
@@ -376,6 +377,17 @@ class TasksViewModel(
             }
 
             return filtered
+        }
+
+        fun factory(
+            taskRepository: ITaskRepository,
+            authRepository: IAuthRepository,
+            preferencesDataStore: AppPreferencesDataStore,
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return TasksViewModel(taskRepository, authRepository, preferencesDataStore) as T
+            }
         }
     }
 }
