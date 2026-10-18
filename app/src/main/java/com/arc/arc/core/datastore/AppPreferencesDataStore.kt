@@ -20,6 +20,11 @@ data class AppPreferences(
     val onboardingCompleted: Boolean = true,
     val remTime: String = "09:00",
     val masterNotificationsEnabled: Boolean = true,
+    val taskRemindersEnabled: Boolean = true,
+    val habitRemindersEnabled: Boolean = true,
+    val expenseRemindersEnabled: Boolean = true,
+    val eveningCheckinTime: String = "20:00",
+    val expenseReminderTime: String = "22:00",
     val activeTaskSort: String = "DueDate",
     val activeTaskCategoryFilter: String? = null,
     val activeTaskStatusFilter: String = "All",
@@ -41,6 +46,11 @@ class AppPreferencesDataStore(
         val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val KEY_REM_TIME = stringPreferencesKey("rem_time")
         val KEY_MASTER_NOTIFICATIONS = booleanPreferencesKey("master_notifications_enabled")
+        val KEY_TASK_REMINDERS_ENABLED = booleanPreferencesKey("task_reminders_enabled")
+        val KEY_HABIT_REMINDERS_ENABLED = booleanPreferencesKey("habit_reminders_enabled")
+        val KEY_EXPENSE_REMINDERS_ENABLED = booleanPreferencesKey("expense_reminders_enabled")
+        val KEY_EVENING_CHECKIN_TIME = stringPreferencesKey("evening_checkin_time")
+        val KEY_EXPENSE_REMINDER_TIME = stringPreferencesKey("expense_reminder_time")
         val KEY_TASK_SORT = stringPreferencesKey("task_sort")
         val KEY_TASK_CATEGORY_FILTER = stringPreferencesKey("task_category_filter")
         val KEY_TASK_STATUS_FILTER = stringPreferencesKey("task_status_filter")
@@ -64,6 +74,11 @@ class AppPreferencesDataStore(
                 onboardingCompleted = prefs[KEY_ONBOARDING_COMPLETED] ?: true,
                 remTime = prefs[KEY_REM_TIME] ?: "09:00",
                 masterNotificationsEnabled = prefs[KEY_MASTER_NOTIFICATIONS] ?: true,
+                taskRemindersEnabled = prefs[KEY_TASK_REMINDERS_ENABLED] ?: true,
+                habitRemindersEnabled = prefs[KEY_HABIT_REMINDERS_ENABLED] ?: true,
+                expenseRemindersEnabled = prefs[KEY_EXPENSE_REMINDERS_ENABLED] ?: true,
+                eveningCheckinTime = prefs[KEY_EVENING_CHECKIN_TIME] ?: "20:00",
+                expenseReminderTime = prefs[KEY_EXPENSE_REMINDER_TIME] ?: "22:00",
                 activeTaskSort = prefs[KEY_TASK_SORT] ?: "DueDate",
                 activeTaskCategoryFilter = prefs[KEY_TASK_CATEGORY_FILTER]?.takeIf { it != "ALL" },
                 activeTaskStatusFilter = prefs[KEY_TASK_STATUS_FILTER] ?: "All",
@@ -143,4 +158,35 @@ class AppPreferencesDataStore(
             prefs[KEY_MONEY_PRIVACY_NOTICE_SEEN] = seen
         }
     }
+
+    suspend fun setTaskRemindersEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[KEY_TASK_REMINDERS_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setHabitRemindersEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[KEY_HABIT_REMINDERS_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setExpenseRemindersEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[KEY_EXPENSE_REMINDERS_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setEveningCheckinTime(time: String) {
+        dataStore.edit { prefs ->
+            prefs[KEY_EVENING_CHECKIN_TIME] = time
+        }
+    }
+
+    suspend fun setExpenseReminderTime(time: String) {
+        dataStore.edit { prefs ->
+            prefs[KEY_EXPENSE_REMINDER_TIME] = time
+        }
+    }
 }
+
