@@ -24,6 +24,9 @@ data class AppPreferences(
     val activeTaskCategoryFilter: String? = null,
     val activeTaskStatusFilter: String = "All",
     val activeTaskDateFilter: String = "All",
+    val isMoneyDetectionEnabled: Boolean = false,
+    val isMoneyAutoSaveEnabled: Boolean = false,
+    val hasSeenMoneyPrivacyNotice: Boolean = false,
 )
 
 /**
@@ -42,6 +45,9 @@ class AppPreferencesDataStore(
         val KEY_TASK_CATEGORY_FILTER = stringPreferencesKey("task_category_filter")
         val KEY_TASK_STATUS_FILTER = stringPreferencesKey("task_status_filter")
         val KEY_TASK_DATE_FILTER = stringPreferencesKey("task_date_filter")
+        val KEY_MONEY_DETECTION_ENABLED = booleanPreferencesKey("money_detection_enabled")
+        val KEY_MONEY_AUTOSAVE_ENABLED = booleanPreferencesKey("money_autosave_enabled")
+        val KEY_MONEY_PRIVACY_NOTICE_SEEN = booleanPreferencesKey("money_privacy_notice_seen")
     }
 
     val preferencesFlow: Flow<AppPreferences> = dataStore.data
@@ -62,6 +68,9 @@ class AppPreferencesDataStore(
                 activeTaskCategoryFilter = prefs[KEY_TASK_CATEGORY_FILTER]?.takeIf { it != "ALL" },
                 activeTaskStatusFilter = prefs[KEY_TASK_STATUS_FILTER] ?: "All",
                 activeTaskDateFilter = prefs[KEY_TASK_DATE_FILTER] ?: "All",
+                isMoneyDetectionEnabled = prefs[KEY_MONEY_DETECTION_ENABLED] ?: false,
+                isMoneyAutoSaveEnabled = prefs[KEY_MONEY_AUTOSAVE_ENABLED] ?: false,
+                hasSeenMoneyPrivacyNotice = prefs[KEY_MONEY_PRIVACY_NOTICE_SEEN] ?: false,
             )
         }
 
@@ -114,6 +123,24 @@ class AppPreferencesDataStore(
     suspend fun setTaskDateFilter(dateFilter: String) {
         dataStore.edit { prefs ->
             prefs[KEY_TASK_DATE_FILTER] = dateFilter
+        }
+    }
+
+    suspend fun setMoneyDetectionEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[KEY_MONEY_DETECTION_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setMoneyAutoSaveEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[KEY_MONEY_AUTOSAVE_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setMoneyPrivacyNoticeSeen(seen: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[KEY_MONEY_PRIVACY_NOTICE_SEEN] = seen
         }
     }
 }

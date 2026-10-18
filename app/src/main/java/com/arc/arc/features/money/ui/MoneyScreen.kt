@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -85,15 +86,21 @@ fun MoneyScreen(
     onDeleteTransaction: (String) -> Unit,
     onSetBudget: (Long) -> Unit,
     onClearMessage: () -> Unit,
+    isDetectionEnabled: Boolean = false,
+    isAutoSaveEnabled: Boolean = false,
+    onToggleDetection: (Boolean) -> Unit = {},
+    onToggleAutoSave: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     var showEditorSheet by remember { mutableStateOf(false) }
     var showSetBudgetDialog by remember { mutableStateOf(false) }
+    var showSettingsSheet by remember { mutableStateOf(false) }
     var selectedTransactionForDetails by remember { mutableStateOf<TransactionModel?>(null) }
 
     val editorSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val detailsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val settingsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val monthDisplayName = remember(uiState.selectedMonth) {
         try {
@@ -109,6 +116,18 @@ fun MoneyScreen(
             snackbarHostState.showSnackbar(it)
             onClearMessage()
         }
+    }
+
+    if (showSettingsSheet) {
+        MoneySettingsSheet(
+            sheetState = settingsSheetState,
+            isDetectionEnabled = isDetectionEnabled,
+            isAutoSaveEnabled = isAutoSaveEnabled,
+            onToggleDetection = onToggleDetection,
+            onToggleAutoSave = onToggleAutoSave,
+            onSimulateTransaction = onSaveTransaction,
+            onDismiss = { showSettingsSheet = false },
+        )
     }
 
     if (showSetBudgetDialog) {
@@ -167,6 +186,7 @@ fun MoneyScreen(
                 monthName = monthDisplayName,
                 onPreviousMonth = onPreviousMonth,
                 onNextMonth = onNextMonth,
+                onSettingsClick = { showSettingsSheet = true },
             )
 
             // Segmented Control Tabs
@@ -237,6 +257,7 @@ private fun MonthSelectorHeader(
     monthName: String,
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -246,27 +267,37 @@ private fun MonthSelectorHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onPreviousMonth) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Previous Month",
-                tint = ArcTheme.colors.textSecondary,
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onPreviousMonth) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Previous Month",
+                    tint = ArcTheme.colors.textSecondary,
+                )
+            }
+
+            Text(
+                text = monthName,
+                style = ArcTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                ),
+                color = ArcTheme.colors.textPrimary,
             )
+
+            IconButton(onClick = onNextMonth) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = "Next Month",
+                    tint = ArcTheme.colors.textSecondary,
+                )
+            }
         }
 
-        Text(
-            text = monthName,
-            style = ArcTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-            ),
-            color = ArcTheme.colors.textPrimary,
-        )
-
-        IconButton(onClick = onNextMonth) {
+        IconButton(onClick = onSettingsClick) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = "Next Month",
+                imageVector = Icons.Default.Tune,
+                contentDescription = "Settings",
                 tint = ArcTheme.colors.textSecondary,
             )
         }
