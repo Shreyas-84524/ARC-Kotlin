@@ -24,6 +24,17 @@ class NavigationStateTest {
         assertEquals("Tasks", ArcNavTab.TASKS.title)
         assertEquals("Habits", ArcNavTab.HABITS.title)
         assertEquals("Money", ArcNavTab.MONEY.title)
+        assertEquals("Vault", ArcNavTab.VAULT.title)
+        assertEquals("vault", ArcNavTab.VAULT.route)
+    }
+
+    @Test
+    fun testShellOverlayRoutes() {
+        val routes = ShellOverlayRoute.values()
+        assertEquals(3, routes.size)
+        assertTrue(routes.contains(ShellOverlayRoute.NONE))
+        assertTrue(routes.contains(ShellOverlayRoute.SEARCH))
+        assertTrue(routes.contains(ShellOverlayRoute.SETTINGS))
     }
 
     @Test

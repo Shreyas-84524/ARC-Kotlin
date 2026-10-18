@@ -14,6 +14,7 @@ import com.arc.arc.core.designsystem.components.ArcLoadingState
 import com.arc.arc.core.designsystem.theme.ArcTheme
 import com.arc.arc.features.auth.LoginScreen
 import com.arc.arc.features.auth.LoginViewModel
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun ArcNavHost(
@@ -46,9 +47,26 @@ fun ArcNavHost(
             }
 
             is AuthState.Authenticated -> {
+                androidx.compose.runtime.LaunchedEffect(state.user.uid) {
+                    try {
+                        val prefs = container.preferencesDataStore.preferencesFlow.first()
+                        val tasks = container.taskRepository.getTasks(state.user.uid)
+                        val habits = container.habitRepository.getHabits(state.user.uid)
+                        val entries = container.habitRepository.getEntries(state.user.uid)
+                        container.notificationManager.reconcile(
+                            ownerUid = state.user.uid,
+                            preferences = prefs,
+                            tasks = tasks,
+                            habits = habits,
+                            habitEntries = entries,
+                        )
+                    } catch (_: Exception) {}
+                }
+
                 MainShellScreen(
                     authRepository = container.authRepository,
                     preferencesDataStore = container.preferencesDataStore,
+                    container = container,
                     tasksContent = tasksContent,
                     habitsContent = {
                         com.arc.arc.features.habits.HabitsRoute(container = container)

@@ -50,6 +50,8 @@ interface AppContainer {
     val vaultAuthCoordinator: VaultAuthCoordinator
     val biometricAuthManager: IBiometricAuthManager
     val vaultLifecycleManager: VaultLifecycleManager
+    val globalSearchRepository: com.arc.arc.features.search.IGlobalSearchRepository
+    val notificationManager: com.arc.arc.core.notifications.IArcNotificationManager
 }
 
 class DefaultAppContainer(private val context: Context) : AppContainer {
@@ -121,5 +123,13 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     override val vaultLifecycleManager: VaultLifecycleManager by lazy {
         VaultLifecycleManager(vaultAuthCoordinator)
+    }
+
+    override val globalSearchRepository: com.arc.arc.features.search.IGlobalSearchRepository by lazy {
+        com.arc.arc.features.search.GlobalSearchRepository(taskRepository, habitRepository, transactionRepository)
+    }
+
+    override val notificationManager: com.arc.arc.core.notifications.IArcNotificationManager by lazy {
+        com.arc.arc.core.notifications.ArcNotificationManager(context)
     }
 }

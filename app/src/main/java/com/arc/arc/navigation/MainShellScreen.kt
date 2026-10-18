@@ -20,7 +20,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -40,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.arc.arc.core.auth.IAuthRepository
 import com.arc.arc.core.auth.UserSession
 import com.arc.arc.core.datastore.AppPreferencesDataStore
@@ -48,15 +50,25 @@ import com.arc.arc.core.designsystem.components.ArcConfirmationDialog
 import com.arc.arc.core.designsystem.components.ArcNavTab
 import com.arc.arc.core.designsystem.theme.ArcDimens
 import com.arc.arc.core.designsystem.theme.ArcTheme
+import com.arc.arc.core.di.AppContainer
 import com.arc.arc.features.dashboard.DashboardPlaceholderScreen
-import com.arc.arc.features.habits.HabitsPlaceholderScreen
-import com.arc.arc.features.money.MoneyPlaceholderScreen
+import com.arc.arc.features.search.GlobalSearchScreen
+import com.arc.arc.features.search.GlobalSearchViewModel
+import com.arc.arc.features.settings.SettingsScreen
+import com.arc.arc.features.settings.SettingsViewModel
 import kotlinx.coroutines.launch
+
+enum class ShellOverlayRoute {
+    NONE,
+    SEARCH,
+    SETTINGS,
+}
 
 @Composable
 fun MainShellScreen(
     authRepository: IAuthRepository,
     preferencesDataStore: AppPreferencesDataStore,
+    container: AppContainer? = null,
     tasksContent: @Composable () -> Unit,
     habitsContent: @Composable () -> Unit = {},
     moneyContent: @Composable () -> Unit = {},
@@ -65,6 +77,7 @@ fun MainShellScreen(
     modifier: Modifier = Modifier,
 ) {
     var selectedTab by remember { mutableStateOf(ArcNavTab.TASKS) }
+    var activeOverlay by remember { mutableStateOf(ShellOverlayRoute.NONE) }
     var showSignOutDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
@@ -72,6 +85,54 @@ fun MainShellScreen(
     val preferences by preferencesDataStore.preferencesFlow.collectAsState(
         initial = com.arc.arc.core.datastore.AppPreferences()
     )
+
+    if (activeOverlay == ShellOverlayRoute.SEARCH && container != null) {
+        val searchViewModel: GlobalSearchViewModel = viewModel(
+            factory = GlobalSearchViewModel.provideFactory(
+                searchRepository = container.globalSearchRepository,
+                authRepository = container.authRepository,
+            )
+        )
+        GlobalSearchScreen(
+            viewModel = searchViewModel,
+            onBackClick = { activeOverlay = ShellOverlayRoute.NONE },
+            onTaskClick = {
+                activeOverlay = ShellOverlayRoute.NONE
+                selectedTab = ArcNavTab.TASKS
+            },
+            onHabitClick = {
+                activeOverlay = ShellOverlayRoute.NONE
+                selectedTab = ArcNavTab.HABITS
+            },
+            onTransactionClick = {
+                activeOverlay = ShellOverlayRoute.NONE
+                selectedTab = ArcNavTab.MONEY
+            },
+        )
+        return
+    }
+
+    if (activeOverlay == ShellOverlayRoute.SETTINGS && container != null) {
+        val settingsViewModel: SettingsViewModel = viewModel(
+            factory = SettingsViewModel.provideFactory(
+                preferencesDataStore = container.preferencesDataStore,
+                authRepository = container.authRepository,
+                taskRepository = container.taskRepository,
+                habitRepository = container.habitRepository,
+                transactionRepository = container.transactionRepository,
+                secretNoteRepository = container.secretNoteRepository,
+            )
+        )
+        SettingsScreen(
+            viewModel = settingsViewModel,
+            onNavigateBack = { activeOverlay = ShellOverlayRoute.NONE },
+            onNavigateToVault = {
+                activeOverlay = ShellOverlayRoute.NONE
+                selectedTab = ArcNavTab.VAULT
+            },
+        )
+        return
+    }
 
     if (showSignOutDialog) {
         ArcConfirmationDialog(
@@ -94,6 +155,8 @@ fun MainShellScreen(
             MainTopBar(
                 userSession = userSession,
                 isDarkMode = preferences.themeMode == "dark",
+                onSearchClick = { activeOverlay = ShellOverlayRoute.SEARCH },
+                onSettingsClick = { activeOverlay = ShellOverlayRoute.SETTINGS },
                 onToggleTheme = {
                     val nextMode = if (preferences.themeMode == "dark") "light" else "dark"
                     scope.launch { preferencesDataStore.setThemeMode(nextMode) }
@@ -136,6 +199,8 @@ fun MainShellScreen(
 private fun MainTopBar(
     userSession: UserSession?,
     isDarkMode: Boolean,
+    onSearchClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     onToggleTheme: () -> Unit,
     onSignOutClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -204,8 +269,26 @@ private fun MainTopBar(
                 }
             }
 
-            // Action Icons (Theme toggle & Sign Out)
+            // Action Icons (Search, Settings, Theme toggle & Sign Out)
             Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onSearchClick) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = ArcTheme.colors.textSecondary,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+
+                IconButton(onClick = onSettingsClick) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = ArcTheme.colors.textSecondary,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+
                 IconButton(onClick = onToggleTheme) {
                     Icon(
                         imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
