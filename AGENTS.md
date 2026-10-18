@@ -1,6 +1,6 @@
 # ARC Kotlin Agent Instructions
 
-1. **Review Phase Handoffs:** Before starting work, review `docs/phase-0/` and all files under `docs/phase-1/`, particularly `docs/phase-1/PHASE_2_HANDOFF.md` and `docs/phase-1/ARCHITECTURE_IMPLEMENTATION.md`.
+1. **Review Phase Handoffs:** Before starting work, review `docs/phase-0/`, `docs/phase-1/`, and all files under `docs/phase-2/`, particularly `docs/phase-2/PHASE_3_HANDOFF.md`, `docs/phase-2/HABITS_IMPLEMENTATION.md`, and `docs/phase-2/DASHBOARD_IMPLEMENTATION.md`.
 2. **Read-Only Legacy Reference:** Treat `C:\dev\ARC` as strictly read-only. Never edit, format, generate into, clean, reset, or restructure the Flutter repository without explicit user permission.
 3. **Architecture & Persistence Standards:**
    - Follow the established native architecture in `com.arc.arc`.

@@ -1,19 +1,19 @@
 # ARC Kotlin
 
-Native Android successor to the ARC Flutter productivity application. This repository contains the native Kotlin architecture, Jetpack Compose design system, Room persistence foundation, development authentication, authenticated navigation shell, and the complete offline-first Tasks vertical slice established in **Phase 1**.
+Native Android successor to the ARC Flutter productivity application. This repository contains the native Kotlin architecture, Jetpack Compose design system, Room persistence foundation, development authentication, authenticated navigation shell, the offline-first Tasks vertical slice established in **Phase 1**, and the native Productivity Dashboard, Habit Tracker, and Room Schema v2 established in **Phase 2**.
 
 ## Objectives
 
 - Preserve the production identity and user-data contracts of the original ARC application (`C:\dev\ARC`).
 - Replace Flutter/Dart incrementally with Kotlin, Jetpack Compose, Room SQLite persistence, and Android-native integrations.
-- Guarantee offline-first reliability, strict user data isolation, and smooth Compose performance.
+- Guarantee offline-first reliability, strict user data isolation, deterministic streak calculations, and smooth Compose performance.
 
 ## Stack & Toolchain
 
 - **Build System:** Android Gradle Plugin 9.4.1 (with AGP built-in Kotlin support) & Gradle 9.8.1
-- **Language & Runtime:** Kotlin 2.4.21, Java 17 bytecode
+- **Language & Runtime:** Kotlin 2.4.21, Java 17 bytecode, Java 8+ API desugaring (`desugar_jdk_libs:2.1.4`)
 - **UI Framework:** Jetpack Compose (BOM 2026.09.00), Material 3
-- **Local Persistence:** AndroidX Room 2.6.1 (SQLite) with schema export, DataStore Preferences 1.1.2
+- **Local Persistence:** AndroidX Room 2.6.1 (SQLite v2) with schema export, DataStore Preferences 1.1.2
 - **Concurrency & Architecture:** Kotlin Coroutines 1.10.1, StateFlow, Unidirectional Data Flow (UDF), ViewModel
 - **SDK Targets:** Compile SDK 37, Target SDK 36, Min SDK 23
 
@@ -26,7 +26,7 @@ The production namespace remains `com.arc.arc`. Debug builds use `com.arc.arc.na
    ```shell
    .\gradlew.bat :app:assembleDebug
    ```
-3. Run automated unit tests:
+3. Run automated unit tests (74 tests across 16 suites):
    ```shell
    .\gradlew.bat :app:testDebugUnitTest
    ```
@@ -41,16 +41,16 @@ The production namespace remains `com.arc.arc`. Debug builds use `com.arc.arc.na
 app/src/main/java/com/arc/arc/
 ├── core/
 │   ├── auth/              # Auth interfaces, session state, DevFakeAuthRepository
-│   ├── database/          # Room database (v1), TaskDao, TaskEntity
+│   ├── database/          # Room database (v2), TaskDao/Entity, HabitDao/Entity, HabitEntryDao/Entity
 │   ├── datastore/         # DataStore preferences for theme and settings
 │   ├── designsystem/      # Compose design system tokens and reusable components
 │   ├── di/                # AppContainer dependency injection
 │   ├── migration/         # Hive to Room migration contract
-│   └── model/             # Domain models (Task, Habit, Transaction, UserProfile)
+│   └── model/             # Domain models (Task, Habit, HabitEntry, Transaction, UserProfile)
 ├── features/
 │   ├── auth/              # Login screen and LoginViewModel
-│   ├── dashboard/         # Dashboard placeholder (Phase 2 target)
-│   ├── habits/            # Habits placeholder (Phase 2 target)
+│   ├── dashboard/         # Reactive Productivity Dashboard (Score engine, UI, ViewModel)
+│   ├── habits/            # Offline-first Habit Tracker (Streak engine, Card, Editor, ViewModel)
 │   ├── money/             # Money placeholder (Phase 3 target)
 │   ├── navigation/        # ArcNavHost and 4-tab MainShellScreen
 │   └── tasks/             # Offline-first Tasks module (UI, ViewModel, Repository)
@@ -70,3 +70,13 @@ app/src/main/java/com/arc/arc/
   - Performance Results: [docs/phase-1/PERFORMANCE_RESULTS.md](docs/phase-1/PERFORMANCE_RESULTS.md)
   - Remaining Integrations: [docs/phase-1/REMAINING_INTEGRATIONS.md](docs/phase-1/REMAINING_INTEGRATIONS.md)
   - Phase 2 Handoff: [docs/phase-1/PHASE_2_HANDOFF.md](docs/phase-1/PHASE_2_HANDOFF.md)
+- **Phase 2 Documentation Suite:**
+  - Executive Report: [docs/phase-2/PHASE_2_REPORT.md](docs/phase-2/PHASE_2_REPORT.md)
+  - Habits Implementation: [docs/phase-2/HABITS_IMPLEMENTATION.md](docs/phase-2/HABITS_IMPLEMENTATION.md)
+  - Dashboard Implementation: [docs/phase-2/DASHBOARD_IMPLEMENTATION.md](docs/phase-2/DASHBOARD_IMPLEMENTATION.md)
+  - Database Migration Results: [docs/phase-2/DATABASE_MIGRATION_RESULTS.md](docs/phase-2/DATABASE_MIGRATION_RESULTS.md)
+  - Offline Integration Results: [docs/phase-2/OFFLINE_INTEGRATION_RESULTS.md](docs/phase-2/OFFLINE_INTEGRATION_RESULTS.md)
+  - Test Results: [docs/phase-2/TEST_RESULTS.md](docs/phase-2/TEST_RESULTS.md)
+  - Performance Results: [docs/phase-2/PERFORMANCE_RESULTS.md](docs/phase-2/PERFORMANCE_RESULTS.md)
+  - Remaining Integrations: [docs/phase-2/REMAINING_INTEGRATIONS.md](docs/phase-2/REMAINING_INTEGRATIONS.md)
+  - Phase 3 Handoff: [docs/phase-2/PHASE_3_HANDOFF.md](docs/phase-2/PHASE_3_HANDOFF.md)
