@@ -1,6 +1,6 @@
 # ARC Kotlin
 
-Native Android successor to the ARC Flutter productivity application. This repository contains the native Kotlin architecture, Jetpack Compose design system, Room persistence foundation, development authentication, authenticated navigation shell, the offline-first Tasks vertical slice established in **Phase 1**, the native Productivity Dashboard, Habit Tracker, and Room Schema v2 established in **Phase 2**, and the native Money Manager, Financial Intelligence Engine, Automatic Expense Detection, and Room Schema v3 established in **Phase 3**.
+Native Android successor to the ARC Flutter productivity application. This repository contains the native Kotlin architecture, Jetpack Compose design system, Room persistence foundation, development authentication, authenticated navigation shell, the offline-first Tasks vertical slice established in **Phase 1**, the native Productivity Dashboard, Habit Tracker, and Room Schema v2 established in **Phase 2**, the native Money Manager, Financial Intelligence Engine, Automatic Expense Detection, and Room Schema v3 established in **Phase 3**, and the native Encrypted Secret Vault, AES-256-GCM Cryptographic Engine, PBKDF2 Key Derivation, Biometric Single-Prompt Security, and Room Schema v4 established in **Phase 4**.
 
 ## Objectives
 
@@ -26,7 +26,7 @@ The production namespace remains `com.arc.arc`. Debug builds use `com.arc.arc.na
    ```shell
    .\gradlew.bat :app:assembleDebug
    ```
-3. Run automated unit tests (117 tests across 22 suites):
+3. Run automated unit tests (160 tests across 30 suites):
    ```shell
    .\gradlew.bat :app:testDebugUnitTest
    ```
@@ -41,22 +41,23 @@ The production namespace remains `com.arc.arc`. Debug builds use `com.arc.arc.na
 app/src/main/java/com/arc/arc/
 ├── core/
 │   ├── auth/              # Auth interfaces, session state, DevFakeAuthRepository
-│   ├── database/          # Room database (v3), Task, Habit, HabitEntry, Transaction, Budget DAOs & Entities
-│   ├── datastore/         # DataStore preferences for theme, settings, and financial privacy
+│   ├── database/          # Room database (v4), Task, Habit, HabitEntry, Transaction, Budget, SecretNote DAOs & Entities
+│   ├── datastore/         # DataStore preferences for theme, settings, financial privacy, and vault rate-limiting
 │   ├── designsystem/      # Compose design system tokens and reusable components
-│   ├── di/                # AppContainer dependency injection
-│   ├── migration/         # Hive to Room migration contract
-│   ├── model/             # Domain models (Task, Habit, HabitEntry, Transaction, Budget, UserProfile)
+│   ├── di/                # AppContainer dependency injection (including Vault crypto and managers)
+│   ├── migration/         # Hive to Room migration contract & legacy notes migration
+│   ├── model/             # Domain models (Task, Habit, HabitEntry, Transaction, Budget, SecretNote, UserProfile)
 │   └── utilities/         # CurrencyFormatter (paise-backed INR formatting)
 ├── features/
 │   ├── auth/              # Login screen and LoginViewModel
 │   ├── dashboard/         # Reactive Productivity Dashboard (Score engine, UI, ViewModel, cross-module cards)
 │   ├── habits/            # Offline-first Habit Tracker (Streak engine, Card, Editor, ViewModel)
 │   ├── money/             # Offline-first Money Manager (UI, ViewModel, Repository, Analytics Engine, Automation)
-│   ├── navigation/        # ArcNavHost and 4-tab MainShellScreen
-│   └── tasks/             # Offline-first Tasks module (UI, ViewModel, Repository)
+│   ├── navigation/        # ArcNavHost and 5-tab MainShellScreen (Tasks, Habits, Dashboard, Money, Vault)
+│   ├── tasks/             # Offline-first Tasks module (UI, ViewModel, Repository)
+│   └── vault/             # Local encrypted vault (Crypto engine, Biometrics, PIN keypad, Editor, ViewModel)
 ├── ArcApplication.kt      # Application subclass
-└── MainActivity.kt        # Entry point ComponentActivity
+└── MainActivity.kt        # Entry point FragmentActivity with dynamic FLAG_SECURE & auto-lock
 ```
 
 ## Documentation
@@ -95,4 +96,17 @@ app/src/main/java/com/arc/arc/
   - Security Audit: [docs/phase-3/SECURITY_AUDIT.md](docs/phase-3/SECURITY_AUDIT.md)
   - Remaining Integrations: [docs/phase-3/REMAINING_INTEGRATIONS.md](docs/phase-3/REMAINING_INTEGRATIONS.md)
   - Phase 4 Handoff: [docs/phase-3/PHASE_4_HANDOFF.md](docs/phase-3/PHASE_4_HANDOFF.md)
+- **Phase 4 Documentation Suite:**
+  - Executive Report: [docs/phase-4/PHASE_4_REPORT.md](docs/phase-4/PHASE_4_REPORT.md)
+  - Cryptography Architecture: [docs/phase-4/CRYPTOGRAPHY_ARCHITECTURE.md](docs/phase-4/CRYPTOGRAPHY_ARCHITECTURE.md)
+  - Key Management: [docs/phase-4/KEY_MANAGEMENT.md](docs/phase-4/KEY_MANAGEMENT.md)
+  - PIN & Biometric Authentication: [docs/phase-4/PIN_AND_BIOMETRIC_AUTH.md](docs/phase-4/PIN_AND_BIOMETRIC_AUTH.md)
+  - Vault Implementation: [docs/phase-4/VAULT_IMPLEMENTATION.md](docs/phase-4/VAULT_IMPLEMENTATION.md)
+  - Auto-Lock & Privacy: [docs/phase-4/AUTO_LOCK_AND_PRIVACY.md](docs/phase-4/AUTO_LOCK_AND_PRIVACY.md)
+  - Legacy Notes Migration: [docs/phase-4/LEGACY_NOTES_MIGRATION.md](docs/phase-4/LEGACY_NOTES_MIGRATION.md)
+  - Security Test Results: [docs/phase-4/SECURITY_TEST_RESULTS.md](docs/phase-4/SECURITY_TEST_RESULTS.md)
+  - Performance Results: [docs/phase-4/PERFORMANCE_RESULTS.md](docs/phase-4/PERFORMANCE_RESULTS.md)
+  - Remaining Integrations: [docs/phase-4/REMAINING_INTEGRATIONS.md](docs/phase-4/REMAINING_INTEGRATIONS.md)
+  - Phase 5 Handoff: [docs/phase-4/PHASE_5_HANDOFF.md](docs/phase-4/PHASE_5_HANDOFF.md)
+
 
