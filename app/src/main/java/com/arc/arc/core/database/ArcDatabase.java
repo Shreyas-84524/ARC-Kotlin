@@ -11,11 +11,17 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 
 /**
  * Native Room Database for ARC offline-first architecture.
- * Schema version 2, exportSchema = true.
+ * Schema version 3, exportSchema = true.
  */
 @Database(
-    entities = {TaskEntity.class, HabitEntity.class, HabitEntryEntity.class},
-    version = 2,
+    entities = {
+        TaskEntity.class,
+        HabitEntity.class,
+        HabitEntryEntity.class,
+        TransactionEntity.class,
+        BudgetEntity.class
+    },
+    version = 3,
     exportSchema = true
 )
 public abstract class ArcDatabase extends RoomDatabase {
@@ -24,6 +30,8 @@ public abstract class ArcDatabase extends RoomDatabase {
 
     public abstract TaskDao taskDao();
     public abstract HabitDao habitDao();
+    public abstract TransactionDao transactionDao();
+    public abstract BudgetDao budgetDao();
 
     public static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
@@ -57,6 +65,42 @@ public abstract class ArcDatabase extends RoomDatabase {
         }
     };
 
+    public static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS `transactions` (" +
+                "`id` TEXT NOT NULL, " +
+                "`ownerUid` TEXT NOT NULL, " +
+                "`amountPaise` INTEGER NOT NULL, " +
+                "`amount` REAL NOT NULL, " +
+                "`type` TEXT NOT NULL, " +
+                "`category` TEXT NOT NULL, " +
+                "`date` INTEGER NOT NULL, " +
+                "`time` TEXT NOT NULL, " +
+                "`notes` TEXT NOT NULL, " +
+                "`createdAt` INTEGER NOT NULL, " +
+                "`source` TEXT NOT NULL, " +
+                "`automationFingerprint` TEXT, " +
+                "PRIMARY KEY(`id`))");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_transactions_ownerUid` ON `transactions` (`ownerUid`)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_transactions_ownerUid_date` ON `transactions` (`ownerUid`, `date`)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_transactions_ownerUid_type` ON `transactions` (`ownerUid`, `type`)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_transactions_ownerUid_category` ON `transactions` (`ownerUid`, `category`)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_transactions_ownerUid_automationFingerprint` ON `transactions` (`ownerUid`, `automationFingerprint`)");
+
+            database.execSQL("CREATE TABLE IF NOT EXISTS `budgets` (" +
+                "`id` TEXT NOT NULL, " +
+                "`ownerUid` TEXT NOT NULL, " +
+                "`month` TEXT NOT NULL, " +
+                "`amountPaise` INTEGER NOT NULL, " +
+                "`amount` REAL NOT NULL, " +
+                "`updatedAt` INTEGER NOT NULL, " +
+                "PRIMARY KEY(`id`))");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_budgets_ownerUid` ON `budgets` (`ownerUid`)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_budgets_ownerUid_month` ON `budgets` (`ownerUid`, `month`)");
+        }
+    };
+
     private static volatile ArcDatabase INSTANCE;
 
     public static ArcDatabase getInstance(Context context) {
@@ -67,7 +111,7 @@ public abstract class ArcDatabase extends RoomDatabase {
                         context.getApplicationContext(),
                         ArcDatabase.class,
                         DATABASE_NAME
-                    ).addMigrations(MIGRATION_1_2)
+                    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                      .build();
                 }
             }

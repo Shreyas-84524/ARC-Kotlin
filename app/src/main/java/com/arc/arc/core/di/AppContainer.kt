@@ -6,10 +6,13 @@ import com.arc.arc.core.auth.IAuthRepository
 import com.arc.arc.core.database.ArcDatabase
 import com.arc.arc.core.database.RoomHabitDataSource
 import com.arc.arc.core.database.RoomTaskDataSource
+import com.arc.arc.core.database.RoomTransactionDataSource
 import com.arc.arc.core.datastore.AppPreferencesDataStore
 import com.arc.arc.core.datastore.arcDataStore
 import com.arc.arc.features.habits.data.IHabitRepository
 import com.arc.arc.features.habits.data.OfflineFirstHabitRepository
+import com.arc.arc.features.money.data.ITransactionRepository
+import com.arc.arc.features.money.data.OfflineFirstTransactionRepository
 import com.arc.arc.features.tasks.data.ITaskRepository
 import com.arc.arc.features.tasks.data.OfflineFirstTaskRepository
 
@@ -23,6 +26,8 @@ interface AppContainer {
     val taskRepository: ITaskRepository
     val habitDataSource: RoomHabitDataSource
     val habitRepository: IHabitRepository
+    val transactionDataSource: RoomTransactionDataSource
+    val transactionRepository: ITransactionRepository
     val preferencesDataStore: AppPreferencesDataStore
     val authRepository: IAuthRepository
 }
@@ -47,6 +52,14 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     override val habitRepository: IHabitRepository by lazy {
         OfflineFirstHabitRepository(habitDataSource)
+    }
+
+    override val transactionDataSource: RoomTransactionDataSource by lazy {
+        RoomTransactionDataSource(database)
+    }
+
+    override val transactionRepository: ITransactionRepository by lazy {
+        OfflineFirstTransactionRepository(transactionDataSource)
     }
 
     override val preferencesDataStore: AppPreferencesDataStore by lazy {
