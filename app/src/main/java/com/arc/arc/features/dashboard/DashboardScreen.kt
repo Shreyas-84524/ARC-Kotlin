@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
@@ -38,6 +39,7 @@ import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -70,6 +72,7 @@ import com.arc.arc.core.designsystem.theme.ArcDimens
 import com.arc.arc.core.designsystem.theme.ArcTheme
 import com.arc.arc.core.model.TaskModel
 import com.arc.arc.core.model.TaskPriority
+import com.arc.arc.core.utilities.CurrencyFormatter
 import java.text.SimpleDateFormat
 
 @Composable
@@ -77,6 +80,7 @@ fun DashboardScreen(
     viewModel: DashboardViewModel,
     onNavigateToTasks: () -> Unit,
     onNavigateToHabits: () -> Unit,
+    onNavigateToMoney: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -242,7 +246,17 @@ fun DashboardScreen(
                     }
                 }
 
-                // 6. Upcoming Deadlines
+                // 6. Monthly Finances Overview
+                item(key = "finances_section") {
+                    FinancialDashboardCard(
+                        monthlyExpensesPaise = state.monthlyExpensesPaise,
+                        monthlyBudgetPaise = state.monthlyBudgetPaise,
+                        remainingBudgetPaise = state.remainingBudgetPaise,
+                        onNavigateToMoney = onNavigateToMoney,
+                    )
+                }
+
+                // 7. Upcoming Deadlines
                 if (state.upcomingDeadlines.isNotEmpty()) {
                     item(key = "upcoming_section") {
                         SectionHeader(
@@ -695,6 +709,7 @@ private fun ActivityRow(
     val (icon, iconColor) = when (activity.type) {
         DashboardActivityType.TASK -> Pair(Icons.Default.CheckBox, Color(0xFF1890FF))
         DashboardActivityType.HABIT -> Pair(Icons.Default.LocalFireDepartment, Color(0xFFF97316))
+        DashboardActivityType.TRANSACTION -> Pair(Icons.Default.AttachMoney, Color(0xFF10B981))
     }
 
     ArcCard(modifier = modifier.fillMaxWidth()) {
@@ -735,6 +750,139 @@ private fun ActivityRow(
                     color = ArcTheme.colors.textSecondary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FinancialDashboardCard(
+    monthlyExpensesPaise: Long,
+    monthlyBudgetPaise: Long,
+    remainingBudgetPaise: Long,
+    onNavigateToMoney: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    ArcCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onNavigateToMoney() },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Surface(
+                        color = Color(0xFF10B981).copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.size(36.dp),
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.AttachMoney,
+                                contentDescription = null,
+                                tint = Color(0xFF10B981),
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "Monthly Finances",
+                            style = ArcTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = ArcTheme.colors.textPrimary,
+                        )
+                        Text(
+                            text = "Expenses & budget tracking",
+                            style = ArcTheme.typography.labelSmall,
+                            color = ArcTheme.colors.textSecondary,
+                        )
+                    }
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "View",
+                        style = ArcTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = ArcTheme.colors.accent,
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = ArcTheme.colors.accent,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column {
+                    Text(
+                        text = "Spent this month",
+                        style = ArcTheme.typography.labelSmall,
+                        color = ArcTheme.colors.textSecondary,
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = CurrencyFormatter.formatPaise(monthlyExpensesPaise),
+                        style = ArcTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = ArcTheme.colors.textPrimary,
+                    )
+                }
+
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = if (monthlyBudgetPaise > 0L) "Remaining Budget" else "Budget Status",
+                        style = ArcTheme.typography.labelSmall,
+                        color = ArcTheme.colors.textSecondary,
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    if (monthlyBudgetPaise > 0L) {
+                        val isOver = remainingBudgetPaise < 0L
+                        Text(
+                            text = CurrencyFormatter.formatPaise(remainingBudgetPaise),
+                            style = ArcTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = if (isOver) ArcTheme.colors.danger else ArcTheme.colors.success,
+                            ),
+                        )
+                    } else {
+                        Text(
+                            text = "No budget set",
+                            style = ArcTheme.typography.bodyMedium.copy(color = ArcTheme.colors.textSecondary),
+                        )
+                    }
+                }
+            }
+
+            if (monthlyBudgetPaise > 0L) {
+                Spacer(modifier = Modifier.height(10.dp))
+                val spentProgress = (monthlyExpensesPaise.toFloat() / monthlyBudgetPaise.toFloat()).coerceIn(0f, 1f)
+                val isOverBudget = monthlyExpensesPaise > monthlyBudgetPaise
+
+                LinearProgressIndicator(
+                    progress = { spentProgress },
+                    color = if (isOverBudget) ArcTheme.colors.danger else ArcTheme.colors.accent,
+                    trackColor = ArcTheme.colors.surfaceVariant,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
                 )
             }
         }

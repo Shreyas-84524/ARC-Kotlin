@@ -5,27 +5,37 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.arc.arc.core.auth.AuthState
 import com.arc.arc.core.auth.IAuthRepository
+import com.arc.arc.core.model.BudgetModel
 import com.arc.arc.core.model.HabitModel
 import com.arc.arc.core.model.TaskModel
+import com.arc.arc.core.model.TransactionModel
+import com.arc.arc.core.utilities.CurrencyFormatter
 import com.arc.arc.features.habits.data.IHabitRepository
 import com.arc.arc.features.habits.engine.HabitStreakEngine
+import com.arc.arc.features.money.data.ITransactionRepository
 import com.arc.arc.features.tasks.data.ITaskRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import kotlin.math.roundToInt
 
 enum class DashboardActivityType {
     TASK,
     HABIT,
+    TRANSACTION,
 }
 
 data class DashboardActivityItem(
@@ -58,6 +68,9 @@ data class DashboardUiState(
     val totalTasksCount: Int = 0,
     val completedTasksCount: Int = 0,
     val maxStreakDays: Int = 0,
+    val monthlyBudgetPaise: Long = 0L,
+    val monthlyExpensesPaise: Long = 0L,
+    val remainingBudgetPaise: Long = 0L,
     val todayHabits: List<DashboardHabitItem> = emptyList(),
     val todayTasks: List<TaskModel> = emptyList(),
     val upcomingDeadlines: List<DashboardTaskItem> = emptyList(),
@@ -70,6 +83,7 @@ class DashboardViewModel(
     private val taskRepository: ITaskRepository,
     private val habitRepository: IHabitRepository,
     private val authRepository: IAuthRepository,
+    private val transactionRepository: ITransactionRepository? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState(isLoading = true))
@@ -98,11 +112,17 @@ class DashboardViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
+            val currentMonthStr = YearMonth.now().toString()
+            val transactionsFlow = transactionRepository?.getTransactionsFlow(userId) ?: flowOf(emptyList())
+            val budgetFlow = transactionRepository?.getBudgetFlow(userId, currentMonthStr) ?: flowOf(null)
+
             combine(
                 taskRepository.getTasksFlow(userId),
                 habitRepository.getHabitsFlow(userId),
                 habitRepository.getEntriesFlow(userId),
-            ) { tasks, habits, entries ->
+                transactionsFlow,
+                budgetFlow,
+            ) { tasks, habits, entries, transactions, budget ->
                 val today = LocalDate.now(ZoneId.systemDefault())
                 val todayStr = HabitStreakEngine.formatDate(today)
 
@@ -146,7 +166,17 @@ class DashboardViewModel(
                     )
                 }
 
-                // 3. Productivity Score (0 - 100)
+                // 3. Finances breakdown
+                val monthFormat = SimpleDateFormat("yyyy-MM", Locale.US).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+                val monthlyExpenses = transactions.filter {
+                    it.isExpense && monthFormat.format(it.date) == currentMonthStr
+                }.sumOf { it.amountPaise }
+                val monthlyBudget = budget?.amountPaise ?: 0L
+                val remainingBudget = if (monthlyBudget > 0L) monthlyBudget - monthlyExpenses else 0L
+
+                // 4. Productivity Score (0 - 100)
                 val taskRate = if (totalTodayTasks > 0) {
                     (completedTodayTasks.toFloat() / totalTodayTasks).coerceIn(0f, 1f)
                 } else {
@@ -161,7 +191,7 @@ class DashboardViewModel(
                 val productivityScore = ((taskRate * 50f) + (habitRate * 50f)).roundToInt().coerceIn(0, 100)
                 val progressPercentage = productivityScore / 100f
 
-                // 4. Upcoming Deadlines (pending tasks with dueDate > todayEnd)
+                // 5. Upcoming Deadlines (pending tasks with dueDate > todayEnd)
                 val upcomingDeadlines = tasks
                     .filter { !it.completed && it.dueDate != null && it.dueDate.after(todayEnd) }
                     .sortedBy { it.dueDate }
@@ -172,7 +202,7 @@ class DashboardViewModel(
                         DashboardTaskItem(task = task, daysUntilDue = days)
                     }
 
-                // 5. Recent Activity Feed (top 10 events)
+                // 6. Recent Activity Feed (top 10 events)
                 val activities = mutableListOf<DashboardActivityItem>()
 
                 tasks.forEach { t ->
@@ -208,6 +238,19 @@ class DashboardViewModel(
                     }
                 }
 
+                transactions.forEach { tx ->
+                    activities.add(
+                        DashboardActivityItem(
+                            id = "tx-${tx.id}",
+                            type = DashboardActivityType.TRANSACTION,
+                            title = tx.category,
+                            subtitle = "${if (tx.isIncome) "+" else "-"}${CurrencyFormatter.formatPaise(tx.amountPaise)} • ${tx.type}",
+                            timestamp = tx.date,
+                            isCompleted = true,
+                        )
+                    )
+                }
+
                 activities.sortByDescending { it.timestamp }
                 val recentActivities = activities.take(10)
 
@@ -221,6 +264,9 @@ class DashboardViewModel(
                     totalTasksCount = totalTasks,
                     completedTasksCount = completedTasks,
                     maxStreakDays = maxStreak,
+                    monthlyBudgetPaise = monthlyBudget,
+                    monthlyExpensesPaise = monthlyExpenses,
+                    remainingBudgetPaise = remainingBudget,
                     todayHabits = dashboardHabits,
                     todayTasks = todayTasks,
                     upcomingDeadlines = upcomingDeadlines,
@@ -286,10 +332,11 @@ class DashboardViewModel(
             taskRepository: ITaskRepository,
             habitRepository: IHabitRepository,
             authRepository: IAuthRepository,
+            transactionRepository: ITransactionRepository? = null,
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return DashboardViewModel(taskRepository, habitRepository, authRepository) as T
+                return DashboardViewModel(taskRepository, habitRepository, authRepository, transactionRepository) as T
             }
         }
     }

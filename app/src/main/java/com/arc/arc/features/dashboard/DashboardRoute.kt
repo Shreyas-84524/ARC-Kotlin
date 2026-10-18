@@ -17,6 +17,7 @@ fun DashboardRoute(
             taskRepository = container.taskRepository,
             habitRepository = container.habitRepository,
             authRepository = container.authRepository,
+            transactionRepository = container.transactionRepository,
         )
     )
 
@@ -24,6 +25,7 @@ fun DashboardRoute(
         viewModel = dashboardViewModel,
         onNavigateToTasks = { onNavigateToTab(ArcNavTab.TASKS) },
         onNavigateToHabits = { onNavigateToTab(ArcNavTab.HABITS) },
+        onNavigateToMoney = { onNavigateToTab(ArcNavTab.MONEY) },
         modifier = modifier,
     )
 }
