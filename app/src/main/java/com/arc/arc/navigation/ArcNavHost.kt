@@ -53,6 +53,12 @@ fun ArcNavHost(
                     habitsContent = {
                         com.arc.arc.features.habits.HabitsRoute(container = container)
                     },
+                    dashboardContent = { onNavigateToTab ->
+                        com.arc.arc.features.dashboard.DashboardRoute(
+                            container = container,
+                            onNavigateToTab = onNavigateToTab,
+                        )
+                    },
                 )
             }
         }
