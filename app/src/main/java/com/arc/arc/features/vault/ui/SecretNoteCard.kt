@@ -24,14 +24,17 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.ConfigurationCompat
 import com.arc.arc.core.model.SecretNoteModel
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -50,8 +53,10 @@ fun SecretNoteCard(
     val bgColor = colorOption.backgroundColor(isDark)
     val borderColor = colorOption.borderColor(isDark)
 
-    val dateFormat = SimpleDateFormat("MMM d, y", Locale.getDefault())
-    val formattedDate = dateFormat.format(note.updatedAt)
+    val configuration = LocalConfiguration.current
+    val locale = ConfigurationCompat.getLocales(configuration)[0] ?: Locale.US
+    val dateFormat = remember(locale) { SimpleDateFormat("MMM d, y", locale) }
+    val formattedDate = remember(note.updatedAt, dateFormat) { dateFormat.format(note.updatedAt) }
 
     val completedCount = note.checklist.count { it.isCompleted }
     val totalChecklist = note.checklist.size
