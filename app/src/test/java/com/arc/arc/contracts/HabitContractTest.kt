@@ -95,4 +95,67 @@ class HabitContractTest {
         assertNotNull(habit.createdAt)
         assertNotNull(habit.updatedAt)
     }
+
+    @Test
+    fun testHabitEntryDuplicateIdDeterminism() {
+        val habitId = "habit-uuid-999"
+        val dateStr = "2026-10-18"
+        val id1 = HabitEntryModel.createId(habitId, dateStr)
+        val id2 = HabitEntryModel.createId(habitId, dateStr)
+        assertEquals("habit-uuid-999_2026-10-18", id1)
+        assertEquals(id1, id2)
+    }
+
+    @Test
+    fun testColorValueSignedVsUnsignedConversion() {
+        // In Flutter Hive, 0xffccff00 (ARGB lime accent) can be serialized as signed 32-bit integer -3342592
+        val signedColorInt = -3342592 // 0xFFCCFF00 as signed 32-bit int
+        val mapWithSigned = mapOf<String, Any?>(
+            "id" to "h-color",
+            "name" to "Hydration",
+            "colorValue" to signedColorInt,
+        )
+
+        val habit = HabitModel.fromMap(mapWithSigned, ownerUid = "uid-1")
+        assertEquals(-3342592L, habit.colorValue)
+
+        // Test with unsigned long representation
+        val mapWithUnsigned = mapOf<String, Any?>(
+            "id" to "h-color-unsigned",
+            "name" to "Meditation",
+            "colorValue" to 0xFFCCFF00L,
+        )
+        val habitUnsigned = HabitModel.fromMap(mapWithUnsigned, ownerUid = "uid-1")
+        assertEquals(0xFFCCFF00L, habitUnsigned.colorValue)
+    }
+
+    @Test
+    fun testDateStrSemanticsAcrossDateBoundaries() {
+        // Month end transition
+        val monthEnd = "2026-02-28"
+        val monthStart = "2026-03-01"
+        val entry1 = HabitEntryModel.fromMap(mapOf("habitId" to "h1", "dateStr" to monthEnd, "completed" to true))
+        val entry2 = HabitEntryModel.fromMap(mapOf("habitId" to "h1", "dateStr" to monthStart, "completed" to true))
+        assertEquals("h1_2026-02-28", entry1.id)
+        assertEquals("h1_2026-03-01", entry2.id)
+
+        // Year boundary transition
+        val yearEnd = "2026-12-31"
+        val newYear = "2027-01-01"
+        val entryYearEnd = HabitEntryModel.fromMap(mapOf("habitId" to "h1", "dateStr" to yearEnd, "completed" to true))
+        val entryNewYear = HabitEntryModel.fromMap(mapOf("habitId" to "h1", "dateStr" to newYear, "completed" to true))
+        assertEquals("h1_2026-12-31", entryYearEnd.id)
+        assertEquals("h1_2027-01-01", entryNewYear.id)
+    }
+
+    @Test
+    fun testHabitEntrySparseAndNullHandling() {
+        val sparseEntryMap = mapOf<String, Any?>(
+            "habitId" to "h-sparse-entry",
+            "dateStr" to "2026-10-18",
+        )
+        val entry = HabitEntryModel.fromMap(sparseEntryMap, ownerUid = "uid-1")
+        assertEquals("h-sparse-entry_2026-10-18", entry.id)
+        assertFalse(entry.completed)
+    }
 }
