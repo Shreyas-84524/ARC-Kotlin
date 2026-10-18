@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.biometric)
     implementation(libs.google.gson)
     annotationProcessor(libs.androidx.room.compiler)
 
