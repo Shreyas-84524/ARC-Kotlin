@@ -1,6 +1,6 @@
 # ARC Kotlin
 
-Native Android successor to the ARC Flutter productivity application. This repository contains the native Kotlin architecture, Jetpack Compose design system, Room persistence foundation, development authentication, authenticated navigation shell, the offline-first Tasks vertical slice established in **Phase 1**, the native Productivity Dashboard, Habit Tracker, and Room Schema v2 established in **Phase 2**, the native Money Manager, Financial Intelligence Engine, Automatic Expense Detection, and Room Schema v3 established in **Phase 3**, and the native Encrypted Secret Vault, AES-256-GCM Cryptographic Engine, PBKDF2 Key Derivation, Biometric Single-Prompt Security, and Room Schema v4 established in **Phase 4**.
+Native Android successor to the ARC Flutter productivity application. This repository contains the native Kotlin architecture, Jetpack Compose design system, Room persistence foundation, development authentication, authenticated navigation shell, the offline-first Tasks vertical slice established in **Phase 1**, the native Productivity Dashboard, Habit Tracker, and Room Schema v2 established in **Phase 2**, the native Money Manager, Financial Intelligence Engine, Automatic Expense Detection, and Room Schema v3 established in **Phase 3**, the native Encrypted Secret Vault, AES-256-GCM Cryptographic Engine, PBKDF2 Key Derivation, Biometric Security, and Room Schema v4 established in **Phase 4**, and the native Settings module, Privacy-Aware Global Search Engine, Notification Engine & Inexact Reminders, Vault Keystore Hardening, Release Build Optimization, and full System Integration established in **Phase 5**.
 
 ## Objectives
 
@@ -26,7 +26,7 @@ The production namespace remains `com.arc.arc`. Debug builds use `com.arc.arc.na
    ```shell
    .\gradlew.bat :app:assembleDebug
    ```
-3. Run automated unit tests (160 tests across 30 suites):
+3. Run automated unit tests (170+ tests across 32 suites):
    ```shell
    .\gradlew.bat :app:testDebugUnitTest
    ```
@@ -108,5 +108,19 @@ app/src/main/java/com/arc/arc/
   - Performance Results: [docs/phase-4/PERFORMANCE_RESULTS.md](docs/phase-4/PERFORMANCE_RESULTS.md)
   - Remaining Integrations: [docs/phase-4/REMAINING_INTEGRATIONS.md](docs/phase-4/REMAINING_INTEGRATIONS.md)
   - Phase 5 Handoff: [docs/phase-4/PHASE_5_HANDOFF.md](docs/phase-4/PHASE_5_HANDOFF.md)
+- **Phase 5 Documentation Suite:**
+  - Executive Report: [docs/phase-5/PHASE_5_REPORT.md](docs/phase-5/PHASE_5_REPORT.md)
+  - Baseline & Security Review: [docs/phase-5/BASELINE_AND_SECURITY_REVIEW.md](docs/phase-5/BASELINE_AND_SECURITY_REVIEW.md)
+  - Vault Hardening Results: [docs/phase-5/VAULT_HARDENING_RESULTS.md](docs/phase-5/VAULT_HARDENING_RESULTS.md)
+  - Settings Implementation: [docs/phase-5/SETTINGS_IMPLEMENTATION.md](docs/phase-5/SETTINGS_IMPLEMENTATION.md)
+  - Global Search Implementation: [docs/phase-5/GLOBAL_SEARCH_IMPLEMENTATION.md](docs/phase-5/GLOBAL_SEARCH_IMPLEMENTATION.md)
+  - Notifications Architecture: [docs/phase-5/NOTIFICATIONS_ARCHITECTURE.md](docs/phase-5/NOTIFICATIONS_ARCHITECTURE.md)
+  - Reminder Test Results: [docs/phase-5/REMINDER_TEST_RESULTS.md](docs/phase-5/REMINDER_TEST_RESULTS.md)
+  - System Integration: [docs/phase-5/SYSTEM_INTEGRATION.md](docs/phase-5/SYSTEM_INTEGRATION.md)
+  - Release Optimization & R8: [docs/phase-5/RELEASE_OPTIMIZATION.md](docs/phase-5/RELEASE_OPTIMIZATION.md)
+  - Performance Benchmarks: [docs/phase-5/PERFORMANCE_BENCHMARKS.md](docs/phase-5/PERFORMANCE_BENCHMARKS.md)
+  - Comprehensive Test Results: [docs/phase-5/TEST_RESULTS.md](docs/phase-5/TEST_RESULTS.md)
+  - User Actions Required: [docs/phase-5/REMAINING_USER_ACTIONS.md](docs/phase-5/REMAINING_USER_ACTIONS.md)
+  - Phase 6 Handoff: [docs/phase-5/PHASE_6_HANDOFF.md](docs/phase-5/PHASE_6_HANDOFF.md)
 
 
