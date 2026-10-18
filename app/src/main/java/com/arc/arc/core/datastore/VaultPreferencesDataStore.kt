@@ -22,6 +22,7 @@ data class VaultConfig(
     val biometricEncryptedDek: String? = null,
     val failedAttempts: Int = 0,
     val lockoutUntilEpochMs: Long = 0L,
+    val formatVersion: Int = 1,
 ) {
     val isConfigured: Boolean
         get() = !saltHex.isNullOrBlank() && !encryptedDek.isNullOrBlank()
@@ -38,7 +39,13 @@ data class VaultConfig(
 interface IVaultPreferencesDataStore {
     fun getVaultConfigFlow(ownerUid: String): Flow<VaultConfig>
     suspend fun getVaultConfig(ownerUid: String): VaultConfig
-    suspend fun saveVaultConfig(ownerUid: String, pinLength: Int, saltHex: String, encryptedDek: String)
+    suspend fun saveVaultConfig(
+        ownerUid: String,
+        pinLength: Int,
+        saltHex: String,
+        encryptedDek: String,
+        formatVersion: Int = 1,
+    )
     suspend fun setBiometricEnabled(ownerUid: String, enabled: Boolean, biometricEncryptedDek: String? = null)
     suspend fun recordFailedAttempt(ownerUid: String, currentTimeMs: Long): VaultConfig
     suspend fun resetFailedAttempts(ownerUid: String)
@@ -65,6 +72,7 @@ class VaultPreferencesDataStore(
     private fun biometricDekKey(ownerUid: String) = stringPreferencesKey("vault_bio_dek_$ownerUid")
     private fun failedAttemptsKey(ownerUid: String) = intPreferencesKey("vault_failed_attempts_$ownerUid")
     private fun lockoutUntilKey(ownerUid: String) = longPreferencesKey("vault_lockout_until_$ownerUid")
+    private fun formatVersionKey(ownerUid: String) = intPreferencesKey("vault_format_version_$ownerUid")
 
     override fun getVaultConfigFlow(ownerUid: String): Flow<VaultConfig> = dataStore.data.map { prefs ->
         VaultConfig(
@@ -75,6 +83,7 @@ class VaultPreferencesDataStore(
             biometricEncryptedDek = prefs[biometricDekKey(ownerUid)],
             failedAttempts = prefs[failedAttemptsKey(ownerUid)] ?: 0,
             lockoutUntilEpochMs = prefs[lockoutUntilKey(ownerUid)] ?: 0L,
+            formatVersion = prefs[formatVersionKey(ownerUid)] ?: 1,
         )
     }
 
@@ -86,6 +95,7 @@ class VaultPreferencesDataStore(
         pinLength: Int,
         saltHex: String,
         encryptedDek: String,
+        formatVersion: Int,
     ) {
         dataStore.edit { prefs ->
             prefs[pinLengthKey(ownerUid)] = pinLength
@@ -93,8 +103,10 @@ class VaultPreferencesDataStore(
             prefs[encryptedDekKey(ownerUid)] = encryptedDek
             prefs[failedAttemptsKey(ownerUid)] = 0
             prefs[lockoutUntilKey(ownerUid)] = 0L
+            prefs[formatVersionKey(ownerUid)] = formatVersion
         }
     }
+
 
     override suspend fun setBiometricEnabled(
         ownerUid: String,

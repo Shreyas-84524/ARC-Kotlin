@@ -41,7 +41,8 @@ class InMemoryVaultPreferencesDataStore : IVaultPreferencesDataStore {
         ownerUid: String,
         pinLength: Int,
         saltHex: String,
-        encryptedDek: String
+        encryptedDek: String,
+        formatVersion: Int,
     ) {
         val current = store.value.toMutableMap()
         val existing = current[ownerUid] ?: VaultConfig()
@@ -50,7 +51,8 @@ class InMemoryVaultPreferencesDataStore : IVaultPreferencesDataStore {
             saltHex = saltHex,
             encryptedDek = encryptedDek,
             failedAttempts = 0,
-            lockoutUntilEpochMs = 0L
+            lockoutUntilEpochMs = 0L,
+            formatVersion = formatVersion,
         )
         store.value = current
     }

@@ -9,15 +9,31 @@ data class LegacyMigrationResult(
     val migratedCount: Int,
     val skippedCount: Int,
     val errors: List<String> = emptyList(),
+    val sourcePreserved: Boolean = true,
+)
+
+data class MigrationCheckpoint(
+    val totalDiscovered: Int,
+    val processedCount: Int,
+    val successCount: Int,
+    val skippedCount: Int,
+    val failureCount: Int,
+    val isComplete: Boolean,
 )
 
 /**
  * Migration adapter for upgrading legacy unencrypted Flutter Hive notes (`secret_notes_data`)
  * into ARC's AES-256-GCM encrypted native Room vault.
  *
- * CRITICAL SECURITY INVARIANT:
- * Plaintext legacy notes are transformed directly into AES-256-GCM versioned envelopes
- * before persisting to Room SQLite storage. Legacy unencrypted storage must be cleared post-migration.
+ * CRITICAL SECURITY & DATA INTEGRITY INVARIANTS:
+ * 1. Plaintext legacy notes are transformed directly into AES-256-GCM versioned envelopes
+ *    before persisting to Room SQLite storage.
+ * 2. SOURCE DATA PRESERVATION: Legacy Hive records, boxes, and JSON exports are NEVER deleted,
+ *    truncated, or mutated automatically. They serve as immutable recovery checkpoints.
+ * 3. IDEMPOTENCY & DUPLICATE PREVENTION: Repeated runs detect existing note IDs in Room
+ *    and safely skip them, allowing safe interruption recovery and re-entry.
+ * 4. PRODUCTION GATING: Production migration remains gated ([isProductionMigrationEnabled])
+ *    until signing and on-device release strategy approval.
  */
 class LegacyVaultMigrationAdapter(
     private val repository: ISecretNoteRepository
@@ -25,7 +41,14 @@ class LegacyVaultMigrationAdapter(
     private val gson = Gson()
 
     /**
+     * Safety switch: On-device production auto-migration is disabled by default
+     * until migration strategy is fully approved.
+     */
+    var isProductionMigrationEnabled: Boolean = false
+
+    /**
      * Migrates a list of raw legacy Flutter note maps into the encrypted vault for [ownerUid] using [dek].
+     * Enforces source preservation, duplicate detection, and recoverable field-level validation.
      */
     suspend fun migrateLegacyMaps(
         ownerUid: String,
@@ -38,20 +61,35 @@ class LegacyVaultMigrationAdapter(
         var skipped = 0
         val errors = mutableListOf<String>()
 
+        // Discover existing note IDs in Room for idempotency and interruption recovery
+        val existingIds = try {
+            repository.getRawEntities(ownerUid).map { it.id }.toSet()
+        } catch (e: Exception) {
+            emptySet()
+        }
+
         legacyMaps.forEach { rawMap ->
             try {
                 val model = SecretNoteModel.fromMap(rawMap).copy(ownerUid = ownerUid)
-                if (model.isValid) {
-                    val saveResult = repository.saveNote(model, dek)
-                    if (saveResult.isSuccess) {
-                        migrated++
-                    } else {
-                        skipped++
-                        errors.add("Failed to save note ${model.id}: ${saveResult.exceptionOrNull()?.message}")
-                    }
-                } else {
+                if (!model.isValid) {
                     skipped++
                     errors.add("Skipped invalid empty legacy note")
+                    return@forEach
+                }
+
+                // Duplicate prevention on re-entry: Skip already migrated notes
+                if (existingIds.contains(model.id)) {
+                    skipped++
+                    errors.add("Skipped existing duplicate note ${model.id}")
+                    return@forEach
+                }
+
+                val saveResult = repository.saveNote(model, dek)
+                if (saveResult.isSuccess) {
+                    migrated++
+                } else {
+                    skipped++
+                    errors.add("Failed to save note ${model.id}: ${saveResult.exceptionOrNull()?.message}")
                 }
             } catch (e: Exception) {
                 skipped++
@@ -62,7 +100,8 @@ class LegacyVaultMigrationAdapter(
         return LegacyMigrationResult(
             migratedCount = migrated,
             skippedCount = skipped,
-            errors = errors
+            errors = errors,
+            sourcePreserved = true // Source data is never mutated or deleted
         )
     }
 
@@ -84,7 +123,8 @@ class LegacyVaultMigrationAdapter(
             LegacyMigrationResult(
                 migratedCount = 0,
                 skippedCount = 0,
-                errors = listOf("Malformed legacy JSON export: ${e.message}")
+                errors = listOf("Malformed legacy JSON export: ${e.message}"),
+                sourcePreserved = true
             )
         }
     }

@@ -15,8 +15,10 @@ import com.arc.arc.features.money.data.ITransactionRepository
 import com.arc.arc.core.database.RoomSecretNoteDataSource
 import com.arc.arc.core.datastore.IVaultPreferencesDataStore
 import com.arc.arc.core.datastore.VaultPreferencesDataStore
+import com.arc.arc.core.security.AndroidKeystoreMasterKeyProvider
 import com.arc.arc.core.security.BiometricAuthManager
 import com.arc.arc.core.security.IBiometricAuthManager
+import com.arc.arc.core.security.IVaultMasterKeyProvider
 import com.arc.arc.core.security.VaultAuthCoordinator
 import com.arc.arc.core.security.VaultLifecycleManager
 import com.arc.arc.core.security.VaultPinManager
@@ -43,6 +45,7 @@ interface AppContainer {
     val secretNoteDataSource: RoomSecretNoteDataSource
     val secretNoteRepository: ISecretNoteRepository
     val vaultPreferencesDataStore: IVaultPreferencesDataStore
+    val vaultMasterKeyProvider: IVaultMasterKeyProvider
     val vaultPinManager: VaultPinManager
     val vaultAuthCoordinator: VaultAuthCoordinator
     val biometricAuthManager: IBiometricAuthManager
@@ -100,8 +103,12 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
         VaultPreferencesDataStore(context.arcDataStore)
     }
 
+    override val vaultMasterKeyProvider: IVaultMasterKeyProvider by lazy {
+        AndroidKeystoreMasterKeyProvider()
+    }
+
     override val vaultPinManager: VaultPinManager by lazy {
-        VaultPinManager(vaultPreferencesDataStore)
+        VaultPinManager(vaultPreferencesDataStore, vaultMasterKeyProvider)
     }
 
     override val vaultAuthCoordinator: VaultAuthCoordinator by lazy {
