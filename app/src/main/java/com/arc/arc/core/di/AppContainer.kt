@@ -4,9 +4,14 @@ import android.content.Context
 import com.arc.arc.core.auth.DevFakeAuthRepository
 import com.arc.arc.core.auth.IAuthRepository
 import com.arc.arc.core.database.ArcDatabase
+import com.arc.arc.core.database.RoomHabitDataSource
 import com.arc.arc.core.database.RoomTaskDataSource
 import com.arc.arc.core.datastore.AppPreferencesDataStore
 import com.arc.arc.core.datastore.arcDataStore
+import com.arc.arc.features.habits.data.IHabitRepository
+import com.arc.arc.features.habits.data.OfflineFirstHabitRepository
+import com.arc.arc.features.tasks.data.ITaskRepository
+import com.arc.arc.features.tasks.data.OfflineFirstTaskRepository
 
 /**
  * Dependency injection container for ARC.
@@ -15,7 +20,9 @@ import com.arc.arc.core.datastore.arcDataStore
 interface AppContainer {
     val database: ArcDatabase
     val taskDataSource: RoomTaskDataSource
-    val taskRepository: com.arc.arc.features.tasks.data.ITaskRepository
+    val taskRepository: ITaskRepository
+    val habitDataSource: RoomHabitDataSource
+    val habitRepository: IHabitRepository
     val preferencesDataStore: AppPreferencesDataStore
     val authRepository: IAuthRepository
 }
@@ -30,8 +37,16 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
         RoomTaskDataSource(database)
     }
 
-    override val taskRepository: com.arc.arc.features.tasks.data.ITaskRepository by lazy {
-        com.arc.arc.features.tasks.data.OfflineFirstTaskRepository(taskDataSource)
+    override val taskRepository: ITaskRepository by lazy {
+        OfflineFirstTaskRepository(taskDataSource)
+    }
+
+    override val habitDataSource: RoomHabitDataSource by lazy {
+        RoomHabitDataSource(database)
+    }
+
+    override val habitRepository: IHabitRepository by lazy {
+        OfflineFirstHabitRepository(habitDataSource)
     }
 
     override val preferencesDataStore: AppPreferencesDataStore by lazy {
@@ -39,7 +54,7 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     }
 
     override val authRepository: IAuthRepository by lazy {
-        // In Phase 1 dev builds without production credentials, use explicitly labeled DevFakeAuthRepository
+        // DevFakeAuthRepository provides isolated development auth
         DevFakeAuthRepository()
     }
 }
