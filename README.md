@@ -1,19 +1,19 @@
 # ARC Kotlin
 
-Native Android successor to the ARC Flutter productivity application. This repository contains the native Kotlin architecture, Jetpack Compose design system, Room persistence foundation, development authentication, authenticated navigation shell, the offline-first Tasks vertical slice established in **Phase 1**, and the native Productivity Dashboard, Habit Tracker, and Room Schema v2 established in **Phase 2**.
+Native Android successor to the ARC Flutter productivity application. This repository contains the native Kotlin architecture, Jetpack Compose design system, Room persistence foundation, development authentication, authenticated navigation shell, the offline-first Tasks vertical slice established in **Phase 1**, the native Productivity Dashboard, Habit Tracker, and Room Schema v2 established in **Phase 2**, and the native Money Manager, Financial Intelligence Engine, Automatic Expense Detection, and Room Schema v3 established in **Phase 3**.
 
 ## Objectives
 
 - Preserve the production identity and user-data contracts of the original ARC application (`C:\dev\ARC`).
 - Replace Flutter/Dart incrementally with Kotlin, Jetpack Compose, Room SQLite persistence, and Android-native integrations.
-- Guarantee offline-first reliability, strict user data isolation, deterministic streak calculations, and smooth Compose performance.
+- Guarantee offline-first reliability, strict user data isolation, non-floating-point financial accuracy, and smooth Compose performance.
 
 ## Stack & Toolchain
 
 - **Build System:** Android Gradle Plugin 9.4.1 (with AGP built-in Kotlin support) & Gradle 9.8.1
 - **Language & Runtime:** Kotlin 2.4.21, Java 17 bytecode, Java 8+ API desugaring (`desugar_jdk_libs:2.1.4`)
 - **UI Framework:** Jetpack Compose (BOM 2026.09.00), Material 3
-- **Local Persistence:** AndroidX Room 2.6.1 (SQLite v2) with schema export, DataStore Preferences 1.1.2
+- **Local Persistence:** AndroidX Room 2.6.1 (SQLite v3) with schema export, DataStore Preferences 1.1.2
 - **Concurrency & Architecture:** Kotlin Coroutines 1.10.1, StateFlow, Unidirectional Data Flow (UDF), ViewModel
 - **SDK Targets:** Compile SDK 37, Target SDK 36, Min SDK 23
 
@@ -26,7 +26,7 @@ The production namespace remains `com.arc.arc`. Debug builds use `com.arc.arc.na
    ```shell
    .\gradlew.bat :app:assembleDebug
    ```
-3. Run automated unit tests (74 tests across 16 suites):
+3. Run automated unit tests (117 tests across 22 suites):
    ```shell
    .\gradlew.bat :app:testDebugUnitTest
    ```
@@ -41,17 +41,18 @@ The production namespace remains `com.arc.arc`. Debug builds use `com.arc.arc.na
 app/src/main/java/com/arc/arc/
 ├── core/
 │   ├── auth/              # Auth interfaces, session state, DevFakeAuthRepository
-│   ├── database/          # Room database (v2), TaskDao/Entity, HabitDao/Entity, HabitEntryDao/Entity
-│   ├── datastore/         # DataStore preferences for theme and settings
+│   ├── database/          # Room database (v3), Task, Habit, HabitEntry, Transaction, Budget DAOs & Entities
+│   ├── datastore/         # DataStore preferences for theme, settings, and financial privacy
 │   ├── designsystem/      # Compose design system tokens and reusable components
 │   ├── di/                # AppContainer dependency injection
 │   ├── migration/         # Hive to Room migration contract
-│   └── model/             # Domain models (Task, Habit, HabitEntry, Transaction, UserProfile)
+│   ├── model/             # Domain models (Task, Habit, HabitEntry, Transaction, Budget, UserProfile)
+│   └── utilities/         # CurrencyFormatter (paise-backed INR formatting)
 ├── features/
 │   ├── auth/              # Login screen and LoginViewModel
-│   ├── dashboard/         # Reactive Productivity Dashboard (Score engine, UI, ViewModel)
+│   ├── dashboard/         # Reactive Productivity Dashboard (Score engine, UI, ViewModel, cross-module cards)
 │   ├── habits/            # Offline-first Habit Tracker (Streak engine, Card, Editor, ViewModel)
-│   ├── money/             # Money placeholder (Phase 3 target)
+│   ├── money/             # Offline-first Money Manager (UI, ViewModel, Repository, Analytics Engine, Automation)
 │   ├── navigation/        # ArcNavHost and 4-tab MainShellScreen
 │   └── tasks/             # Offline-first Tasks module (UI, ViewModel, Repository)
 ├── ArcApplication.kt      # Application subclass
@@ -80,3 +81,18 @@ app/src/main/java/com/arc/arc/
   - Performance Results: [docs/phase-2/PERFORMANCE_RESULTS.md](docs/phase-2/PERFORMANCE_RESULTS.md)
   - Remaining Integrations: [docs/phase-2/REMAINING_INTEGRATIONS.md](docs/phase-2/REMAINING_INTEGRATIONS.md)
   - Phase 3 Handoff: [docs/phase-2/PHASE_3_HANDOFF.md](docs/phase-2/PHASE_3_HANDOFF.md)
+- **Phase 3 Documentation Suite:**
+  - Executive Report: [docs/phase-3/PHASE_3_REPORT.md](docs/phase-3/PHASE_3_REPORT.md)
+  - Money Implementation: [docs/phase-3/MONEY_IMPLEMENTATION.md](docs/phase-3/MONEY_IMPLEMENTATION.md)
+  - Financial Intelligence Engine: [docs/phase-3/FINANCIAL_INTELLIGENCE.md](docs/phase-3/FINANCIAL_INTELLIGENCE.md)
+  - Expense Detection Engine: [docs/phase-3/EXPENSE_DETECTION_ENGINE.md](docs/phase-3/EXPENSE_DETECTION_ENGINE.md)
+  - SMS Policy & Compliance: [docs/phase-3/SMS_POLICY_AND_COMPLIANCE.md](docs/phase-3/SMS_POLICY_AND_COMPLIANCE.md)
+  - Cross-Module Integration: [docs/phase-3/CROSS_MODULE_INTEGRATION.md](docs/phase-3/CROSS_MODULE_INTEGRATION.md)
+  - Database Migration V3: [docs/phase-3/DATABASE_MIGRATION_V3.md](docs/phase-3/DATABASE_MIGRATION_V3.md)
+  - Data Contract Results: [docs/phase-3/DATA_CONTRACT_RESULTS.md](docs/phase-3/DATA_CONTRACT_RESULTS.md)
+  - Test Results: [docs/phase-3/TEST_RESULTS.md](docs/phase-3/TEST_RESULTS.md)
+  - Performance Results: [docs/phase-3/PERFORMANCE_RESULTS.md](docs/phase-3/PERFORMANCE_RESULTS.md)
+  - Security Audit: [docs/phase-3/SECURITY_AUDIT.md](docs/phase-3/SECURITY_AUDIT.md)
+  - Remaining Integrations: [docs/phase-3/REMAINING_INTEGRATIONS.md](docs/phase-3/REMAINING_INTEGRATIONS.md)
+  - Phase 4 Handoff: [docs/phase-3/PHASE_4_HANDOFF.md](docs/phase-3/PHASE_4_HANDOFF.md)
+
