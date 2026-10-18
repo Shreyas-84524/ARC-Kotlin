@@ -19,9 +19,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
         HabitEntity.class,
         HabitEntryEntity.class,
         TransactionEntity.class,
-        BudgetEntity.class
+        BudgetEntity.class,
+        SecretNoteEntity.class
     },
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 public abstract class ArcDatabase extends RoomDatabase {
@@ -32,6 +33,7 @@ public abstract class ArcDatabase extends RoomDatabase {
     public abstract HabitDao habitDao();
     public abstract TransactionDao transactionDao();
     public abstract BudgetDao budgetDao();
+    public abstract SecretNoteDao secretNoteDao();
 
     public static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
@@ -101,6 +103,23 @@ public abstract class ArcDatabase extends RoomDatabase {
         }
     };
 
+    public static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS `secret_notes` (" +
+                "`id` TEXT NOT NULL, " +
+                "`ownerUid` TEXT NOT NULL, " +
+                "`encryptedTitle` TEXT NOT NULL, " +
+                "`encryptedPayload` TEXT NOT NULL, " +
+                "`color` TEXT NOT NULL, " +
+                "`createdAt` INTEGER NOT NULL, " +
+                "`updatedAt` INTEGER NOT NULL, " +
+                "PRIMARY KEY(`id`))");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_secret_notes_ownerUid` ON `secret_notes` (`ownerUid`)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_secret_notes_ownerUid_updatedAt` ON `secret_notes` (`ownerUid`, `updatedAt`)");
+        }
+    };
+
     private static volatile ArcDatabase INSTANCE;
 
     public static ArcDatabase getInstance(Context context) {
@@ -111,7 +130,7 @@ public abstract class ArcDatabase extends RoomDatabase {
                         context.getApplicationContext(),
                         ArcDatabase.class,
                         DATABASE_NAME
-                    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                      .build();
                 }
             }
