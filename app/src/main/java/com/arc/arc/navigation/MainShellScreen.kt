@@ -59,6 +59,7 @@ fun MainShellScreen(
     preferencesDataStore: AppPreferencesDataStore,
     tasksContent: @Composable () -> Unit,
     habitsContent: @Composable () -> Unit = {},
+    moneyContent: @Composable () -> Unit = {},
     dashboardContent: (@Composable ((ArcNavTab) -> Unit) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -123,9 +124,7 @@ fun MainShellScreen(
                 }
                 ArcNavTab.TASKS -> tasksContent()
                 ArcNavTab.HABITS -> habitsContent()
-                ArcNavTab.MONEY -> MoneyPlaceholderScreen(
-                    onNavigateToTasks = { selectedTab = ArcNavTab.TASKS },
-                )
+                ArcNavTab.MONEY -> moneyContent()
             }
         }
     }
