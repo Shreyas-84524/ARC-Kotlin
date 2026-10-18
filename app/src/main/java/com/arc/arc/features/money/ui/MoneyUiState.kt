@@ -23,6 +23,7 @@ data class MoneyUiState(
     val searchQuery: String = "",
     val categoryExpenses: Map<String, Long> = emptyMap(),
     val dailySpending: Map<Int, Long> = emptyMap(),
+    val analyticsReport: com.arc.arc.features.money.analytics.FinancialAnalyticsReport? = null,
     val isLoading: Boolean = false,
     val userMessage: String? = null,
     val isAutomationPromptVisible: Boolean = false,

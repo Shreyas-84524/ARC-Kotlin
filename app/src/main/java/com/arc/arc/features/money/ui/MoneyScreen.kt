@@ -512,6 +512,143 @@ private fun AnalyticsView(
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        // 1. Financial Health & Pace Card
+        uiState.analyticsReport?.let { report ->
+            item {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(ArcDimens.RadiusCard))
+                        .border(1.dp, ArcTheme.colors.borderSubtle, RoundedCornerShape(ArcDimens.RadiusCard)),
+                    color = ArcTheme.colors.surface,
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "Financial Health",
+                                style = ArcTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = ArcTheme.colors.textPrimary,
+                            )
+                            val (badgeBg, badgeText) = when (report.healthRating) {
+                                com.arc.arc.features.money.analytics.FinancialHealthRating.EXCELLENT -> Pair(ArcTheme.colors.accent, "EXCELLENT")
+                                com.arc.arc.features.money.analytics.FinancialHealthRating.HEALTHY -> Pair(ArcTheme.colors.success, "HEALTHY")
+                                com.arc.arc.features.money.analytics.FinancialHealthRating.MODERATE -> Pair(Color(0xFFFAAD14), "MODERATE")
+                                com.arc.arc.features.money.analytics.FinancialHealthRating.CRITICAL -> Pair(ArcTheme.colors.danger, "CRITICAL")
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(badgeBg.copy(alpha = 0.15f))
+                                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                            ) {
+                                Text(
+                                    text = badgeText,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = badgeBg,
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = report.healthSummary,
+                            style = ArcTheme.typography.bodyMedium.copy(
+                                fontSize = 13.sp,
+                                color = ArcTheme.colors.textSecondary,
+                            ),
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+                        HorizontalDivider(color = ArcTheme.colors.borderSubtle.copy(alpha = 0.5f), thickness = 0.5.dp)
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Column {
+                                Text(text = "Daily Burn Rate", style = ArcTheme.typography.labelSmall.copy(color = ArcTheme.colors.textSecondary))
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "${CurrencyFormatter.formatPaise(report.dailyAverageSpendPaise)}/day",
+                                    style = ArcTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = ArcTheme.colors.textPrimary),
+                                )
+                            }
+                            Column {
+                                Text(text = "Projected Spend", style = ArcTheme.typography.labelSmall.copy(color = ArcTheme.colors.textSecondary))
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = CurrencyFormatter.formatPaise(report.projectedMonthEndSpendPaise),
+                                    style = ArcTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = ArcTheme.colors.textPrimary),
+                                )
+                            }
+                            Column {
+                                Text(text = "Budget Pace", style = ArcTheme.typography.labelSmall.copy(color = ArcTheme.colors.textSecondary))
+                                Spacer(modifier = Modifier.height(4.dp))
+                                val paceLabel = when (report.budgetPaceStatus) {
+                                    com.arc.arc.features.money.analytics.BudgetPaceStatus.ON_TRACK -> "On Track"
+                                    com.arc.arc.features.money.analytics.BudgetPaceStatus.AT_RISK -> "At Risk"
+                                    com.arc.arc.features.money.analytics.BudgetPaceStatus.EXCEEDED -> "Exceeded"
+                                    com.arc.arc.features.money.analytics.BudgetPaceStatus.NO_BUDGET -> "No Budget"
+                                }
+                                val paceColor = when (report.budgetPaceStatus) {
+                                    com.arc.arc.features.money.analytics.BudgetPaceStatus.ON_TRACK -> ArcTheme.colors.success
+                                    com.arc.arc.features.money.analytics.BudgetPaceStatus.AT_RISK -> Color(0xFFFAAD14)
+                                    com.arc.arc.features.money.analytics.BudgetPaceStatus.EXCEEDED -> ArcTheme.colors.danger
+                                    com.arc.arc.features.money.analytics.BudgetPaceStatus.NO_BUDGET -> ArcTheme.colors.textSecondary
+                                }
+                                Text(
+                                    text = paceLabel,
+                                    style = ArcTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = paceColor),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Month-over-Month Comparison Card
+        uiState.analyticsReport?.monthOverMonthComparison?.let { mom ->
+            item {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(ArcDimens.RadiusCard))
+                        .border(1.dp, ArcTheme.colors.borderSubtle, RoundedCornerShape(ArcDimens.RadiusCard)),
+                    color = ArcTheme.colors.surface,
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text(
+                            text = "Month-over-Month Trend",
+                            style = ArcTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = ArcTheme.colors.textPrimary,
+                        )
+                        Spacer(modifier = Modifier.height(14.dp))
+                        SummaryRow(
+                            label = "Previous Month Expenses (${mom.previousMonth})",
+                            value = CurrencyFormatter.formatPaise(mom.previousExpensePaise),
+                        )
+                        SummaryRow(
+                            label = "Expense Change",
+                            value = "${if (mom.expenseChangePercentage >= 0) "+" else ""}${"%.1f".format(mom.expenseChangePercentage)}%",
+                            valueColor = if (mom.expenseChangePercentage > 0) ArcTheme.colors.danger else ArcTheme.colors.success,
+                        )
+                        SummaryRow(
+                            label = "Income Change",
+                            value = "${if (mom.incomeChangePercentage >= 0) "+" else ""}${"%.1f".format(mom.incomeChangePercentage)}%",
+                            valueColor = if (mom.incomeChangePercentage >= 0) ArcTheme.colors.success else ArcTheme.colors.danger,
+                        )
+                    }
+                }
+            }
+        }
+
         // Monthly Summary Card
         item {
             Surface(

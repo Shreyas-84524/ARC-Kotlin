@@ -7,6 +7,7 @@ import com.arc.arc.core.auth.AuthState
 import com.arc.arc.core.auth.IAuthRepository
 import com.arc.arc.core.model.BudgetModel
 import com.arc.arc.core.model.TransactionModel
+import com.arc.arc.features.money.analytics.FinancialAnalyticsEngine
 import com.arc.arc.features.money.data.ITransactionRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -134,6 +135,24 @@ class MoneyViewModel(
 
         val showPrompt = budgetPaise > 0L && !promptDismissed
 
+        val prevMonth = try {
+            YearMonth.parse(month).minusMonths(1).toString()
+        } catch (_: Exception) {
+            ""
+        }
+        val prevMonthTx = if (prevMonth.isNotBlank()) {
+            allTx.filter { tx -> monthFormat.format(tx.date) == prevMonth }
+        } else {
+            null
+        }
+
+        val report = FinancialAnalyticsEngine.generateReport(
+            month = month,
+            currentMonthTransactions = monthTx,
+            currentBudget = budget,
+            previousMonthTransactions = prevMonthTx,
+        )
+
         MoneyUiState(
             selectedMonth = month,
             selectedTab = tab,
@@ -151,6 +170,7 @@ class MoneyViewModel(
             searchQuery = query,
             categoryExpenses = catBreakdown,
             dailySpending = dailyMap,
+            analyticsReport = report,
             isLoading = false,
             userMessage = message,
             isAutomationPromptVisible = showPrompt,
