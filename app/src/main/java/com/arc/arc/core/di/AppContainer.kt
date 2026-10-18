@@ -15,6 +15,7 @@ import com.arc.arc.core.datastore.arcDataStore
 interface AppContainer {
     val database: ArcDatabase
     val taskDataSource: RoomTaskDataSource
+    val taskRepository: com.arc.arc.features.tasks.data.ITaskRepository
     val preferencesDataStore: AppPreferencesDataStore
     val authRepository: IAuthRepository
 }
@@ -27,6 +28,10 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     override val taskDataSource: RoomTaskDataSource by lazy {
         RoomTaskDataSource(database)
+    }
+
+    override val taskRepository: com.arc.arc.features.tasks.data.ITaskRepository by lazy {
+        com.arc.arc.features.tasks.data.OfflineFirstTaskRepository(taskDataSource)
     }
 
     override val preferencesDataStore: AppPreferencesDataStore by lazy {
