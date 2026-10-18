@@ -86,6 +86,11 @@ object ArcTheme {
         @ReadOnlyComposable
         get() = LocalArcColors.current
 
+    val typography: androidx.compose.material3.Typography
+        @Composable
+        @ReadOnlyComposable
+        get() = MaterialTheme.typography
+
     val dimens: ArcDimens
         get() = ArcDimens
 }

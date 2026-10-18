@@ -58,6 +58,8 @@ fun MainShellScreen(
     authRepository: IAuthRepository,
     preferencesDataStore: AppPreferencesDataStore,
     tasksContent: @Composable () -> Unit,
+    habitsContent: @Composable () -> Unit = {},
+    dashboardContent: (@Composable ((ArcNavTab) -> Unit) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     var selectedTab by remember { mutableStateOf(ArcNavTab.TASKS) }
@@ -110,13 +112,17 @@ fun MainShellScreen(
                 .padding(innerPadding),
         ) {
             when (selectedTab) {
-                ArcNavTab.DASHBOARD -> DashboardPlaceholderScreen(
-                    onNavigateToTasks = { selectedTab = ArcNavTab.TASKS },
-                )
+                ArcNavTab.DASHBOARD -> {
+                    if (dashboardContent != null) {
+                        dashboardContent { targetTab -> selectedTab = targetTab }
+                    } else {
+                        DashboardPlaceholderScreen(
+                            onNavigateToTasks = { selectedTab = ArcNavTab.TASKS },
+                        )
+                    }
+                }
                 ArcNavTab.TASKS -> tasksContent()
-                ArcNavTab.HABITS -> HabitsPlaceholderScreen(
-                    onNavigateToTasks = { selectedTab = ArcNavTab.TASKS },
-                )
+                ArcNavTab.HABITS -> habitsContent()
                 ArcNavTab.MONEY -> MoneyPlaceholderScreen(
                     onNavigateToTasks = { selectedTab = ArcNavTab.TASKS },
                 )

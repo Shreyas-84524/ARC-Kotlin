@@ -88,4 +88,5 @@ data class ArcCustomColors(
     val priorityLow: Color = ArcColors.PriorityLow,
     val success: Color = ArcColors.Success,
     val danger: Color = ArcColors.Danger,
+    val surfaceVariant: Color = card,
 )

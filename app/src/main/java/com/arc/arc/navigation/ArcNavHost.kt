@@ -50,6 +50,9 @@ fun ArcNavHost(
                     authRepository = container.authRepository,
                     preferencesDataStore = container.preferencesDataStore,
                     tasksContent = tasksContent,
+                    habitsContent = {
+                        com.arc.arc.features.habits.HabitsRoute(container = container)
+                    },
                 )
             }
         }
