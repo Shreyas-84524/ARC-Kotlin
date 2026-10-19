@@ -8,10 +8,10 @@ import androidx.compose.ui.graphics.Color
  */
 object ArcColors {
     // Accent (Neon Lime)
-    val Accent = Color(0xFFD7FF2F)
-    val AccentHover = Color(0xFFE5FF5C)
-    val AccentPressed = Color(0xFFBCD91F)
-    val AccentGlow = Color(0x66D7FF2F)
+    val Accent = Color(0xFFD6FF24)
+    val AccentHover = Color(0xFFE4FF58)
+    val AccentPressed = Color(0xFFB8D91A)
+    val AccentGlow = Color(0x66D6FF24)
     val DarkAccent = Color(0xFF5C7000)
 
     // Priorities
@@ -27,12 +27,12 @@ object ArcColors {
     val Income = Color(0xFFD7FF2F)
 
     // Dark Backgrounds
-    val DarkBg = Color(0xFF141414)
-    val DarkBgSecondary = Color(0xFF1B1B1B)
-    val DarkSurface = Color(0xFF202020)
-    val DarkCard = Color(0xFF242424)
-    val DarkElevated = Color(0xFF2A2A2A)
-    val DarkModal = Color(0xFF1E1E1E)
+    val DarkBg = Color(0xFF101010)
+    val DarkBgSecondary = Color(0xFF181818)
+    val DarkSurface = Color(0xFF1D1D1F)
+    val DarkCard = Color(0xFF232323)
+    val DarkElevated = Color(0xFF292929)
+    val DarkModal = Color(0xFF1C1C1E)
 
     // Light Backgrounds
     val LightBg = Color(0xFFF9FAFB)

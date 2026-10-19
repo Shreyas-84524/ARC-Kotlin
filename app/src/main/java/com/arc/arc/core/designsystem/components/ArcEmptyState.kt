@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -35,12 +37,20 @@ fun ArcEmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(56.dp),
-            tint = ArcTheme.colors.textMuted,
-        )
+        Surface(
+            shape = CircleShape,
+            color = ArcTheme.colors.accent.copy(alpha = 0.12f),
+            modifier = Modifier.size(92.dp),
+        ) {
+            androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(52.dp),
+                    tint = ArcTheme.colors.accent,
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = title,
@@ -62,7 +72,7 @@ fun ArcEmptyState(
             ArcPrimaryButton(
                 text = actionLabel,
                 onClick = onAction,
-                modifier = Modifier.fillMaxWidth(0.6f),
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }

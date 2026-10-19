@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -99,6 +100,7 @@ fun DashboardScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = ArcTheme.colors.background,
         modifier = modifier.fillMaxSize(),
@@ -132,79 +134,49 @@ fun DashboardScreen(
                     )
                 }
 
-                // 3. Quick Metrics Row
+                // 3. Reference-aligned 2 x 2 quick metrics grid.
                 item(key = "metrics_row") {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        MetricCard(
-                            title = "Daily Streak",
-                            value = "${state.maxStreakDays}d",
-                            subtitle = "Keep it burning!",
-                            icon = Icons.Default.LocalFireDepartment,
-                            accentColor = Color(0xFFF97316),
-                            modifier = Modifier.weight(1f),
-                        )
-                        MetricCard(
-                            title = "Tasks Done",
-                            value = "${state.completedTasksCount}/${state.totalTasksCount}",
-                            subtitle = "All time",
-                            icon = Icons.Default.CheckCircle,
-                            accentColor = ArcTheme.colors.accent,
-                            modifier = Modifier.weight(1f),
-                        )
-                        MetricCard(
-                            title = "Habits Today",
-                            value = "${state.completedTodayHabitsCount}/${state.totalHabitsCount}",
-                            subtitle = "Check-ins",
-                            icon = Icons.Default.TrackChanges,
-                            accentColor = Color(0xFF10B981),
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                }
-
-                // 4. Today's Habits Carousel
-                item(key = "habits_section") {
-                    SectionHeader(
-                        title = "Today's Habits",
-                        actionLabel = "View All",
-                        onActionClick = onNavigateToHabits,
-                    )
-
-                    Spacer(modifier = Modifier.height(ArcDimens.SpacingSm))
-
-                    if (state.todayHabits.isEmpty()) {
-                        ArcCard(modifier = Modifier.fillMaxWidth()) {
-                            Text(
-                                text = "No habits tracked yet. Start building a streak!",
-                                style = ArcTheme.typography.bodyMedium,
-                                color = ArcTheme.colors.textSecondary,
-                                modifier = Modifier.padding(ArcDimens.SpacingMd),
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            MetricCard(
+                                title = "Remaining Budget",
+                                value = CurrencyFormatter.formatPaise(state.remainingBudgetPaise),
+                                subtitle = "Monthly balance",
+                                icon = Icons.Default.AttachMoney,
+                                accentColor = ArcTheme.colors.accent,
+                                modifier = Modifier.weight(1f),
+                            )
+                            MetricCard(
+                                title = "Daily Streak",
+                                value = "${state.maxStreakDays} Days",
+                                subtitle = "Keep it going!",
+                                icon = Icons.Default.LocalFireDepartment,
+                                accentColor = ArcTheme.colors.accent,
+                                modifier = Modifier.weight(1f),
                             )
                         }
-                    } else {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            items(
-                                items = state.todayHabits,
-                                key = { it.habit.id },
-                            ) { habitItem ->
-                                TodayHabitCard(
-                                    item = habitItem,
-                                    onToggle = { completed ->
-                                        viewModel.toggleHabitToday(habitItem.habit.id, completed)
-                                    },
-                                )
-                            }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            MetricCard(
+                                title = "Monthly Expenses",
+                                value = CurrencyFormatter.formatPaise(state.monthlyExpensesPaise),
+                                subtitle = "Spending so far",
+                                icon = Icons.Default.QueryBuilder,
+                                accentColor = ArcTheme.colors.danger,
+                                modifier = Modifier.weight(1f),
+                            )
+                            MetricCard(
+                                title = "Tasks Done",
+                                value = "${state.completedTasksCount}/${state.totalTasksCount}",
+                                subtitle = "All time",
+                                icon = Icons.Default.CheckCircle,
+                                accentColor = ArcTheme.colors.accent,
+                                modifier = Modifier.weight(1f),
+                            )
                         }
                     }
                 }
 
-                // 5. Today's Tasks Checklist
+                // 4. Today's Tasks Checklist
                 item(key = "tasks_section") {
                     SectionHeader(
                         title = "Today's Tasks",
@@ -246,17 +218,7 @@ fun DashboardScreen(
                     }
                 }
 
-                // 6. Monthly Finances Overview
-                item(key = "finances_section") {
-                    FinancialDashboardCard(
-                        monthlyExpensesPaise = state.monthlyExpensesPaise,
-                        monthlyBudgetPaise = state.monthlyBudgetPaise,
-                        remainingBudgetPaise = state.remainingBudgetPaise,
-                        onNavigateToMoney = onNavigateToMoney,
-                    )
-                }
-
-                // 7. Upcoming Deadlines
+                // 5. Upcoming Deadlines
                 if (state.upcomingDeadlines.isNotEmpty()) {
                     item(key = "upcoming_section") {
                         SectionHeader(
@@ -278,7 +240,7 @@ fun DashboardScreen(
                     }
                 }
 
-                // 7. Recent Activity Feed
+                // 6. Recent Activity Feed
                 item(key = "activity_section") {
                     SectionHeader(
                         title = "Recent Activity",
@@ -395,7 +357,7 @@ private fun ProgressOverviewCard(
                 CircularProgressIndicator(
                     progress = { state.progressPercentage },
                     color = ArcTheme.colors.accent,
-                    trackColor = ArcTheme.colors.surfaceVariant,
+                    trackColor = Color.Black.copy(alpha = 0.28f),
                     strokeWidth = 6.dp,
                     modifier = Modifier.fillMaxSize(),
                 )

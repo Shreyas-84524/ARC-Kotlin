@@ -89,7 +89,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Settings",
+                        text = "Settings & Profile",
                         style = ArcTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         color = ArcTheme.colors.textPrimary
                     )
@@ -120,7 +120,7 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            // Profile Card
+            SettingsSectionHeader(title = "Account & Security", icon = Icons.Default.AccountCircle)
             SettingsProfileCard(
                 displayName = state.userDisplayName,
                 email = state.userEmail,
@@ -139,7 +139,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Notifications Section
-            SettingsSectionHeader(title = "Notifications & Reminders", icon = Icons.Default.Notifications)
+            SettingsSectionHeader(title = "Notifications", icon = Icons.Default.Notifications)
             SettingsToggleRow(
                 title = "Master Notifications",
                 subtitle = "Enable or disable all application notifications",
@@ -178,7 +178,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Money Tracker & Privacy Section
-            SettingsSectionHeader(title = "Money Tracker & Intelligence", icon = Icons.Default.Security)
+            SettingsSectionHeader(title = "Money Tracker", icon = Icons.Default.Security)
             SettingsToggleRow(
                 title = "Automatic Expense Detection",
                 subtitle = "Analyze incoming SMS locally without network transmission",
@@ -228,7 +228,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Local Data Management Section
-            SettingsSectionHeader(title = "Local Data Storage", icon = Icons.Default.Storage)
+            SettingsSectionHeader(title = "Backup & Maintenance", icon = Icons.Default.Storage)
             DataStatisticsCard(
                 taskCount = state.taskCount,
                 habitCount = state.habitCount,

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -25,13 +26,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -55,7 +53,6 @@ import androidx.compose.ui.unit.sp
 import com.arc.arc.core.designsystem.components.ArcConfirmationDialog
 import com.arc.arc.core.designsystem.components.ArcEmptyState
 import com.arc.arc.core.designsystem.components.ArcFilterChip
-import com.arc.arc.core.designsystem.components.ArcTextField
 import com.arc.arc.core.designsystem.theme.ArcDimens
 import com.arc.arc.core.designsystem.theme.ArcTheme
 import com.arc.arc.core.model.TaskConstants
@@ -88,6 +85,7 @@ fun TasksScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         modifier = modifier.fillMaxSize(),
         containerColor = ArcTheme.colors.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -142,35 +140,6 @@ fun TasksScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Search Bar
-            Box(modifier = Modifier.padding(horizontal = ArcDimens.ScreenHorizontalPadding)) {
-                ArcTextField(
-                    value = uiState.searchQuery,
-                    onValueChange = viewModel::setSearchQuery,
-                    placeholder = "Search tasks...",
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null,
-                            tint = ArcTheme.colors.textPlaceholder,
-                        )
-                    },
-                    trailingIcon = if (uiState.searchQuery.isNotEmpty()) {
-                        {
-                            IconButton(onClick = { viewModel.setSearchQuery("") }) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Clear search",
-                                    tint = ArcTheme.colors.textPlaceholder,
-                                )
-                            }
-                        }
-                    } else null,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             // Sort & Category Dropdowns Header
             Row(
                 modifier = Modifier
@@ -189,16 +158,14 @@ fun TasksScreen(
                             .clickable { isSortMenuOpen = true },
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                text = "Sort: ${uiState.sortOption.displayName}",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = ArcTheme.colors.textPrimary,
-                            )
+                            Column {
+                                Text("Sort By", fontSize = 10.sp, color = ArcTheme.colors.textMuted)
+                                Text(uiState.sortOption.displayName, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ArcTheme.colors.textPrimary)
+                            }
                             Icon(
                                 imageVector = Icons.Default.ArrowDropDown,
                                 contentDescription = null,
@@ -234,16 +201,14 @@ fun TasksScreen(
                             .clickable { isCategoryMenuOpen = true },
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                text = uiState.categoryFilter ?: "All Categories",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = ArcTheme.colors.textPrimary,
-                            )
+                            Column {
+                                Text("Category", fontSize = 10.sp, color = ArcTheme.colors.textMuted)
+                                Text(uiState.categoryFilter ?: "All", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ArcTheme.colors.textPrimary)
+                            }
                             Icon(
                                 imageVector = Icons.Default.ArrowDropDown,
                                 contentDescription = null,

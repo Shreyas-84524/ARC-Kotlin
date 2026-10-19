@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -25,6 +26,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.TrackChanges
@@ -41,6 +44,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,6 +71,7 @@ fun HabitsScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var selectedTab by remember { mutableStateOf(0) }
 
     LaunchedEffect(state.userMessage) {
         state.userMessage?.let { msg ->
@@ -75,6 +81,7 @@ fun HabitsScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
@@ -99,6 +106,19 @@ fun HabitsScreen(
                 ArcLoadingState()
             } else {
                 Column(modifier = Modifier.fillMaxSize()) {
+                    HabitModeSwitcher(
+                        selectedTab = selectedTab,
+                        onSelected = { selectedTab = it },
+                        modifier = Modifier.padding(horizontal = ArcDimens.SpacingLg, vertical = ArcDimens.SpacingSm),
+                    )
+                    if (selectedTab == 1) {
+                        HabitAnalyticsContent(
+                            state = state,
+                            onGoalTypeChanged = viewModel::setGoalType,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                        return@Column
+                    }
                     // 1. Top Summary Banner with Progress and Goal Switcher
                     HabitsSummaryCard(
                         summary = state.summary,
@@ -138,12 +158,14 @@ fun HabitsScreen(
                     if (state.filteredHabits.isEmpty()) {
                         ArcEmptyState(
                             icon = Icons.Default.TrackChanges,
-                            title = if (state.allHabits.isEmpty()) "No Habits Yet" else "No Habits Found",
+                            title = if (state.allHabits.isEmpty()) "No habits tracking yet" else "No Habits Found",
                             description = if (state.allHabits.isEmpty()) {
                                 "Build consistency by creating your first daily habit!"
                             } else {
                                 "No habits match the selected '${state.selectedCategory}' category filter."
                             },
+                            actionLabel = if (state.allHabits.isEmpty()) "Create Habit" else null,
+                            onAction = if (state.allHabits.isEmpty()) viewModel::openCreateEditor else null,
                         )
                     } else {
                         LazyColumn(
@@ -197,6 +219,138 @@ fun HabitsScreen(
                     isDanger = true,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun HabitModeSwitcher(
+    selectedTab: Int,
+    onSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        color = ArcTheme.colors.surface,
+        shape = RoundedCornerShape(18.dp),
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Row(Modifier.padding(5.dp)) {
+            listOf("Check-in" to Icons.Default.CheckBox, "Analytics" to Icons.Default.BarChart).forEachIndexed { index, item ->
+                val selected = selectedTab == index
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(if (selected) ArcTheme.colors.accent else Color.Transparent)
+                        .clickable { onSelected(index) }
+                        .padding(vertical = 13.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(item.second, null, tint = if (selected) Color.Black else ArcTheme.colors.textSecondary, modifier = Modifier.size(19.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(item.first, fontWeight = FontWeight.Bold, color = if (selected) Color.Black else ArcTheme.colors.textSecondary)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HabitAnalyticsContent(
+    state: HabitsUiState,
+    onGoalTypeChanged: (HabitGoalType) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 96.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+    ) {
+        item {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Filter Goal Type", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = ArcTheme.colors.textPrimary)
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    HabitGoalType.entries.forEach { goal ->
+                        ArcFilterChip(
+                            label = goal.displayName,
+                            selected = state.selectedGoalType == goal,
+                            onClick = { onGoalTypeChanged(goal) },
+                        )
+                    }
+                }
+            }
+        }
+        item {
+            ArcCard(Modifier.fillMaxWidth()) {
+                Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("${state.selectedGoalType.displayName} Goal Compliance", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = ArcTheme.colors.textPrimary)
+                    Spacer(Modifier.height(28.dp))
+                    if (state.allHabits.isEmpty()) {
+                        Text("No Habits Created Yet", color = ArcTheme.colors.textMuted)
+                        Spacer(Modifier.height(44.dp))
+                    } else {
+                        CircularProgressIndicator(
+                            progress = { state.summary.completionPercentage },
+                            color = ArcTheme.colors.accent,
+                            trackColor = ArcTheme.colors.surfaceVariant,
+                            strokeWidth = 10.dp,
+                            modifier = Modifier.size(120.dp),
+                        )
+                        Spacer(Modifier.height(24.dp))
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        AnalyticsInlineStat("${state.summary.completedCount}", "Completed", ArcTheme.colors.accent)
+                        AnalyticsInlineStat("${state.summary.remainingCount}", "Remaining", ArcTheme.colors.textMuted)
+                        AnalyticsInlineStat("${(state.summary.completionPercentage * 100).toInt()}%", "Completion %", ArcTheme.colors.accent)
+                    }
+                }
+            }
+        }
+        item { Text("Goal Group Performance", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = ArcTheme.colors.textPrimary) }
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    AnalyticsMetricCard("${state.summary.maxCurrentStreak} Days", "Current Streak", ArcTheme.colors.accent, Modifier.weight(1f))
+                    AnalyticsMetricCard("${state.summary.maxLongestStreak} Days", "Longest Streak", Color(0xFFFFB020), Modifier.weight(1f))
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    AnalyticsMetricCard("${(state.summary.completionPercentage * 100).toInt()}%", "Completion Rate", ArcTheme.colors.accent, Modifier.weight(1f))
+                    AnalyticsMetricCard("${state.allHabits.size}", "Total Habits", Color(0xFF29A9FF), Modifier.weight(1f))
+                }
+            }
+        }
+        item { Text("Individual Goal Performance", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = ArcTheme.colors.textPrimary) }
+        if (state.allHabits.isEmpty()) {
+            item {
+                ArcCard(Modifier.fillMaxWidth()) {
+                    Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Default.CheckBox, null, tint = ArcTheme.colors.textMuted, modifier = Modifier.size(44.dp))
+                        Spacer(Modifier.height(12.dp))
+                        Text("No habits created yet", fontWeight = FontWeight.Bold, color = ArcTheme.colors.textSecondary)
+                        Text("Create habits to track individual performance.", color = ArcTheme.colors.textMuted, fontSize = 13.sp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AnalyticsInlineStat(value: String, label: String, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, color = color, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+        Text(label, color = ArcTheme.colors.textMuted, fontSize = 11.sp)
+    }
+}
+
+@Composable
+private fun AnalyticsMetricCard(value: String, label: String, color: Color, modifier: Modifier = Modifier) {
+    ArcCard(modifier.height(112.dp)) {
+        Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.Center) {
+            Text(value, fontSize = 21.sp, fontWeight = FontWeight.Bold, color = color)
+            Spacer(Modifier.height(7.dp))
+            Text(label, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = ArcTheme.colors.textMuted)
         }
     }
 }

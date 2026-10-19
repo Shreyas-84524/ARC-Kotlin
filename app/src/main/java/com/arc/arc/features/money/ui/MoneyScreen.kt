@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -160,6 +161,7 @@ fun MoneyScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         modifier = modifier.fillMaxSize(),
         containerColor = ArcTheme.colors.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -168,7 +170,7 @@ fun MoneyScreen(
                 FloatingActionButton(
                     onClick = { showEditorSheet = true },
                     containerColor = ArcTheme.colors.accent,
-                    contentColor = Color.White,
+                    contentColor = Color.Black,
                     shape = CircleShape,
                 ) {
                     Icon(imageVector = Icons.Default.Add, contentDescription = "Add Transaction")
@@ -181,53 +183,18 @@ fun MoneyScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            // Month Selector Bar
+            MoneyModeSwitcher(
+                selectedTab = uiState.selectedTab,
+                onTabSelected = onTabSelected,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+            )
+
             MonthSelectorHeader(
                 monthName = monthDisplayName,
                 onPreviousMonth = onPreviousMonth,
                 onNextMonth = onNextMonth,
                 onSettingsClick = { showSettingsSheet = true },
             )
-
-            // Segmented Control Tabs
-            TabRow(
-                selectedTabIndex = uiState.selectedTab,
-                containerColor = ArcTheme.colors.background,
-                contentColor = ArcTheme.colors.accent,
-                indicator = { tabPositions ->
-                    TabRowDefaults.SecondaryIndicator(
-                        Modifier.tabIndicatorOffset(tabPositions[uiState.selectedTab]),
-                        color = ArcTheme.colors.accent,
-                    )
-                },
-                divider = {
-                    HorizontalDivider(color = ArcTheme.colors.borderSubtle, thickness = 0.5.dp)
-                },
-                modifier = Modifier.padding(horizontal = 20.dp),
-            ) {
-                Tab(
-                    selected = uiState.selectedTab == 0,
-                    onClick = { onTabSelected(0) },
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.SwapHoriz, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Transactions", fontWeight = FontWeight.SemiBold)
-                        }
-                    },
-                )
-                Tab(
-                    selected = uiState.selectedTab == 1,
-                    onClick = { onTabSelected(1) },
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.PieChart, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Analytics", fontWeight = FontWeight.SemiBold)
-                        }
-                    },
-                )
-            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -247,6 +214,35 @@ fun MoneyScreen(
                     uiState = uiState,
                     monthName = monthDisplayName,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MoneyModeSwitcher(
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(color = ArcTheme.colors.surface, shape = RoundedCornerShape(18.dp), modifier = modifier.fillMaxWidth()) {
+        Row(Modifier.padding(5.dp)) {
+            listOf("Transactions" to Icons.Default.SwapHoriz, "Analytics" to Icons.Default.PieChart).forEachIndexed { index, item ->
+                val selected = selectedTab == index
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(if (selected) ArcTheme.colors.accent else Color.Transparent)
+                        .clickable { onTabSelected(index) }
+                        .padding(vertical = 13.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(item.second, null, tint = if (selected) Color.Black else ArcTheme.colors.textSecondary, modifier = Modifier.size(19.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(item.first, fontWeight = FontWeight.Bold, color = if (selected) Color.Black else ArcTheme.colors.textSecondary)
+                }
             }
         }
     }
