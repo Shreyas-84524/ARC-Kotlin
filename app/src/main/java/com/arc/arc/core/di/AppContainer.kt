@@ -1,20 +1,23 @@
 package com.arc.arc.core.di
 
 import android.content.Context
+import com.arc.arc.BuildConfig
+import com.arc.arc.core.auth.ArcFirebaseConfig
 import com.arc.arc.core.auth.DevFakeAuthRepository
+import com.arc.arc.core.auth.FirebaseAuthRepository
 import com.arc.arc.core.auth.IAuthRepository
 import com.arc.arc.core.database.ArcDatabase
 import com.arc.arc.core.database.RoomHabitDataSource
+import com.arc.arc.core.database.RoomSecretNoteDataSource
 import com.arc.arc.core.database.RoomTaskDataSource
 import com.arc.arc.core.database.RoomTransactionDataSource
 import com.arc.arc.core.datastore.AppPreferencesDataStore
-import com.arc.arc.core.datastore.arcDataStore
-import com.arc.arc.features.habits.data.IHabitRepository
-import com.arc.arc.features.habits.data.OfflineFirstHabitRepository
-import com.arc.arc.features.money.data.ITransactionRepository
-import com.arc.arc.core.database.RoomSecretNoteDataSource
 import com.arc.arc.core.datastore.IVaultPreferencesDataStore
 import com.arc.arc.core.datastore.VaultPreferencesDataStore
+import com.arc.arc.core.datastore.arcDataStore
+import com.arc.arc.core.migration.HiveToRoomMigrator
+import com.arc.arc.core.notifications.ArcNotificationManager
+import com.arc.arc.core.notifications.IArcNotificationManager
 import com.arc.arc.core.security.AndroidKeystoreMasterKeyProvider
 import com.arc.arc.core.security.BiometricAuthManager
 import com.arc.arc.core.security.IBiometricAuthManager
@@ -22,7 +25,14 @@ import com.arc.arc.core.security.IVaultMasterKeyProvider
 import com.arc.arc.core.security.VaultAuthCoordinator
 import com.arc.arc.core.security.VaultLifecycleManager
 import com.arc.arc.core.security.VaultPinManager
+import com.arc.arc.core.sync.FirestoreSyncManager
+import com.arc.arc.core.sync.IFirestoreSyncManager
+import com.arc.arc.features.habits.data.IHabitRepository
+import com.arc.arc.features.habits.data.OfflineFirstHabitRepository
+import com.arc.arc.features.money.data.ITransactionRepository
 import com.arc.arc.features.money.data.OfflineFirstTransactionRepository
+import com.arc.arc.features.search.GlobalSearchRepository
+import com.arc.arc.features.search.IGlobalSearchRepository
 import com.arc.arc.features.tasks.data.ITaskRepository
 import com.arc.arc.features.tasks.data.OfflineFirstTaskRepository
 import com.arc.arc.features.vault.data.ISecretNoteRepository
@@ -30,7 +40,7 @@ import com.arc.arc.features.vault.data.OfflineFirstSecretNoteRepository
 
 /**
  * Dependency injection container for ARC.
- * Provides singleton data sources, database, and repository instances.
+ * Provides singleton data sources, database, repository, sync, and security instances.
  */
 interface AppContainer {
     val database: ArcDatabase
@@ -50,11 +60,17 @@ interface AppContainer {
     val vaultAuthCoordinator: VaultAuthCoordinator
     val biometricAuthManager: IBiometricAuthManager
     val vaultLifecycleManager: VaultLifecycleManager
-    val globalSearchRepository: com.arc.arc.features.search.IGlobalSearchRepository
-    val notificationManager: com.arc.arc.core.notifications.IArcNotificationManager
+    val globalSearchRepository: IGlobalSearchRepository
+    val notificationManager: IArcNotificationManager
+    val syncManager: IFirestoreSyncManager
+    val dataMigrator: HiveToRoomMigrator
 }
 
-class DefaultAppContainer(private val context: Context) : AppContainer {
+class DefaultAppContainer(
+    private val context: Context,
+    customAuthRepository: IAuthRepository? = null,
+    customSyncManager: IFirestoreSyncManager? = null,
+) : AppContainer {
 
     override val database: ArcDatabase by lazy {
         ArcDatabase.getInstance(context)
@@ -89,8 +105,20 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     }
 
     override val authRepository: IAuthRepository by lazy {
-        // DevFakeAuthRepository provides isolated development auth
-        DevFakeAuthRepository()
+        customAuthRepository ?: if (!BuildConfig.DEBUG) {
+            // Production release builds: NEVER instantiate fake auth
+            ArcFirebaseConfig.initialize(context)
+            FirebaseAuthRepository(context)
+        } else {
+            // Debug builds: if Firebase is initialized, provide real FirebaseAuthRepository;
+            // otherwise fallback to isolated DevFakeAuthRepository for local testing.
+            val firebaseReady = ArcFirebaseConfig.initialize(context)
+            if (firebaseReady) {
+                FirebaseAuthRepository(context)
+            } else {
+                DevFakeAuthRepository()
+            }
+        }
     }
 
     override val secretNoteDataSource: RoomSecretNoteDataSource by lazy {
@@ -125,11 +153,19 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
         VaultLifecycleManager(vaultAuthCoordinator)
     }
 
-    override val globalSearchRepository: com.arc.arc.features.search.IGlobalSearchRepository by lazy {
-        com.arc.arc.features.search.GlobalSearchRepository(taskRepository, habitRepository, transactionRepository)
+    override val globalSearchRepository: IGlobalSearchRepository by lazy {
+        GlobalSearchRepository(taskRepository, habitRepository, transactionRepository)
     }
 
-    override val notificationManager: com.arc.arc.core.notifications.IArcNotificationManager by lazy {
-        com.arc.arc.core.notifications.ArcNotificationManager(context)
+    override val notificationManager: IArcNotificationManager by lazy {
+        ArcNotificationManager(context)
+    }
+
+    override val syncManager: IFirestoreSyncManager by lazy {
+        customSyncManager ?: FirestoreSyncManager(database)
+    }
+
+    override val dataMigrator: HiveToRoomMigrator by lazy {
+        HiveToRoomMigrator(database)
     }
 }

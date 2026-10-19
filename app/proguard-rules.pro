@@ -74,3 +74,25 @@
 # ------------------------------------------------------------------------------
 -keep class com.arc.arc.core.notifications.** { *; }
 -keep class com.arc.arc.core.notifications.ArcReminderReceiver { *; }
+
+# ------------------------------------------------------------------------------
+# 8. Firebase, Firestore & Authentication
+# ------------------------------------------------------------------------------
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.android.gms.**
+
+# ------------------------------------------------------------------------------
+# 9. AndroidX Credentials Manager & GoogleId
+# ------------------------------------------------------------------------------
+-keep class androidx.credentials.** { *; }
+-dontwarn androidx.credentials.**
+-keep class com.google.android.libraries.identity.googleid.** { *; }
+
+# ------------------------------------------------------------------------------
+# 10. WorkManager Background Tasks
+# ------------------------------------------------------------------------------
+-keep class androidx.work.** { *; }
+-keep class com.arc.arc.core.sync.ArcSyncWorker { *; }
+-dontwarn androidx.work.**

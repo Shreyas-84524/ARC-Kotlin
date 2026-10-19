@@ -16,7 +16,13 @@ interface IAuthRepository {
 
     suspend fun signInWithEmailAndPassword(emailOrUsername: String, password: String): Result<UserSession>
 
+    suspend fun signUpWithEmailAndPassword(email: String, password: String, displayName: String): Result<UserSession>
+
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit>
+
     suspend fun signInWithGoogle(): Result<UserSession>
+
+    suspend fun signInWithGoogleCredential(idToken: String): Result<UserSession> = signInWithGoogle()
 
     suspend fun signOut(): Result<Unit>
 

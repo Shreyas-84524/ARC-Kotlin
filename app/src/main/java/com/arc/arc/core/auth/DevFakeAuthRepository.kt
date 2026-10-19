@@ -91,7 +91,42 @@ class DevFakeAuthRepository(
         return Result.success(session)
     }
 
+    override suspend fun signUpWithEmailAndPassword(
+        email: String,
+        password: String,
+        displayName: String,
+    ): Result<UserSession> {
+        val clean = email.trim()
+        if (clean.isBlank() || !clean.contains("@")) {
+            return Result.failure(IllegalArgumentException("Invalid email format"))
+        }
+        val name = displayName.trim().ifEmpty { clean.substringBefore("@") }
+        val session = UserSession(
+            uid = "dev_uid_${clean.substringBefore("@").lowercase().replace(" ", "_")}",
+            email = clean,
+            displayName = name,
+            username = name,
+            role = "user",
+            isDevFake = true,
+        )
+        _authState.value = AuthState.Authenticated(session)
+        return Result.success(session)
+    }
+
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        if (email.isBlank() || !email.contains("@")) {
+            return Result.failure(IllegalArgumentException("Invalid email format"))
+        }
+        return Result.success(Unit)
+    }
+
     override suspend fun signInWithGoogle(): Result<UserSession> {
+        val session = DEFAULT_DEV_USER
+        _authState.value = AuthState.Authenticated(session)
+        return Result.success(session)
+    }
+
+    override suspend fun signInWithGoogleCredential(idToken: String): Result<UserSession> {
         val session = DEFAULT_DEV_USER
         _authState.value = AuthState.Authenticated(session)
         return Result.success(session)
